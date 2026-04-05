@@ -1252,27 +1252,25 @@ async function initUser() {
   const tg = window.Telegram?.WebApp;
   const tgUser = tg?.initDataUnsafe?.user;
 
-  let telegram_id, first_name, username;
-
-  if (tgUser) {
-    telegram_id = tgUser.id;
-    first_name = tgUser.first_name || 'Пользователь';
-    username = tgUser.username || null;
-  } else {
-    // Fallback: используем случайный ID сохранённый в localStorage
-    let anonId = localStorage.getItem('batumi_anon_id');
-    if (!anonId) {
-      anonId = 'anon_' + Math.floor(Math.random() * 9999999999);
-      localStorage.setItem('batumi_anon_id', anonId);
-    }
-    telegram_id = anonId;
-    first_name = 'Гость';
-    username = null;
+  // Генерируем локальный ID сессии
+  let sessionId;
+  try { sessionId = localStorage.getItem('batumi_uid'); } catch(e) {}
+  if (!sessionId) {
+    sessionId = 'u_' + Date.now() + '_' + Math.floor(Math.random()*99999);
+    try { localStorage.setItem('batumi_uid', sessionId); } catch(e) {}
   }
 
+  const telegram_id = tgUser ? String(tgUser.id) : sessionId;
+  const first_name = tgUser?.first_name || 'Гость';
+  const username = tgUser?.username || null;
+
+  // Устанавливаем currentUser сразу — чтобы кнопки работали
+  currentUser = { id: sessionId, telegram_id, first_name };
+
+  // Сохраняем в Supabase в фоне
   try {
     const { data } = await sb.from('users').upsert({
-      telegram_id: String(telegram_id),
+      telegram_id,
       username,
       first_name,
       last_name: tgUser?.last_name || null,
@@ -1283,7 +1281,7 @@ async function initUser() {
       await loadFavorites();
     }
   } catch(e) {
-    console.error('initUser error', e);
+    console.error('Supabase error:', e);
   }
 }
 
@@ -1294,7 +1292,7 @@ async function loadFavorites() {
 }
 
 async function toggleFavorite() {
-  if (!currentUser) { alert('Откройте приложение через Telegram'); return; }
+  if (!currentUser) { currentUser = { id: 'guest', telegram_id: 'guest', first_name: 'Гость' }; }
   if (!currentPlace) return;
   const pid = currentPlace.id;
   const btn = document.getElementById('favBtn');
@@ -1311,7 +1309,7 @@ async function toggleFavorite() {
 }
 
 async function doCheckin() {
-  if (!currentUser) { alert('Откройте приложение через Telegram'); return; }
+  if (!currentUser) { currentUser = { id: 'guest', telegram_id: 'guest', first_name: 'Гость' }; }
   if (!currentPlace) return;
   await sb.from('checkins').insert({ user_id: currentUser.id, place_id: currentPlace.id });
   const btn = document.getElementById('checkinBtn');
@@ -1357,7 +1355,7 @@ function setStars(n) {
 async function submitReview() {
   const text=document.getElementById('reviewText').value.trim();
   if(!text||!selectedStars){alert('Пожалуйста, поставьте оценку и напишите отзыв');return;}
-  if (!currentUser) { alert('Откройте приложение через Telegram'); return; }
+  if (!currentUser) { currentUser = { id: 'guest', telegram_id: 'guest', first_name: 'Гость' }; }
   if (!currentPlace) return;
   await sb.from('reviews').insert({
     user_id: currentUser.id,
