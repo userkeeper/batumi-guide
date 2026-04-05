@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Batumi Guide</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --bg: #f8f7f4;
+      --bg2: #ffffff;
+      --border: #eeece8;
+      --text: #1a1a1a;
+      --text2: #6b6b6b;
+      --text3: #a0a0a0;
+      --accent: #2d5a27;
+      --accent-light: #e8f0e6;
+      --accent2: #c8a96e;
+      --shadow: 0 2px 20px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 40px rgba(0,0,0,0.14);
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ─── HEADER ─── */
+    .header {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px 0;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    .header-city { font-size: 12px; color: var(--text3); }
+
+    /* ─── TABS NAV ─── */
+    .tabs-nav { display: flex; }
+    .tab-btn {
+      flex: 1; background: none; border: none;
+      padding: 10px 0; font-family: 'Inter', sans-serif;
+      font-size: 13px; font-weight: 500; color: var(--text3);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      transition: all 0.2s; display: flex; align-items: center;
+      justify-content: center; gap: 6px;
+    }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-btn svg { width: 15px; height: 15px; }
+
+    /* ─── CONTENT ─── */
+    .content {
+      flex: 1; overflow: hidden; position: relative;
+      display: flex; flex-direction: column;
+    }
+    .tab-panel {
+      display: none; flex: 1; overflow-y: auto; min-height: 0;
+    }
+    .tab-panel.active { display: flex; flex-direction: column; }
+    #tab-map { overflow: hidden; }
+    #map { flex: 1; width: 100%; min-height: 0; }
+
+    /* ─── FILTER BAR ─── */
+    .filter-bar {
+      position: absolute; top: 12px; left: 12px; right: 12px;
+      z-index: 1000; display: flex; gap: 8px;
+      overflow-x: auto; scrollbar-width: none; padding-bottom: 2px;
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+    .filter-chip {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 7px 14px;
+      font-family: 'Inter', sans-serif; font-size: 12px;
+      font-weight: 500; color: var(--text2); cursor: pointer;
+      white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: all 0.2s; display: flex; align-items: center; gap: 5px;
+    }
+    .filter-chip.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+    /* ─── FLOATING MINI CARD (popup near marker) ─── */
+    .mini-card {
+      position: absolute;
+      z-index: 1001;
+      background: var(--bg2);
+      border-radius: 14px;
+      padding: 12px 14px 10px;
+      box-shadow: var(--shadow-lg);
+      width: 230px;
+      pointer-events: auto;
+      transform: translate(-50%, calc(-100% - 24px));
+      transition: opacity 0.2s, transform 0.2s;
+      opacity: 0;
+      display: none;
+    }
+    .mini-card.open {
+      display: block;
+      opacity: 1;
+    }
+    /* Arrow pointing down */
+    .mini-card::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 8px solid var(--bg2);
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,0.08));
+    }
+    .mini-card-top {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+    }
+    .mini-emoji {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .mini-name {
+      font-size: 14px; font-weight: 700;
+      line-height: 1.2; margin-bottom: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 140px;
+    }
+    .mini-cat { font-size: 11px; color: var(--text3); }
+    .mini-stars {
+      display: flex; align-items: center; gap: 3px; margin-bottom: 8px;
+    }
+    .mini-star { color: var(--accent2); font-size: 13px; }
+    .mini-star.empty { color: var(--border); }
+    .mini-rating-val { font-size: 12px; font-weight: 600; margin-left: 3px; }
+    .mini-rating-cnt { font-size: 11px; color: var(--text3); }
+
+    /* Social icons row */
+    .mini-socials {
+      display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
+    }
+    .social-icon {
+      width: 26px; height: 26px;
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; text-decoration: none;
+      transition: transform 0.15s, opacity 0.15s;
+      flex-shrink: 0;
+    }
+    .social-icon:hover { transform: scale(1.12); opacity: 0.85; }
+    .social-icon svg { width: 14px; height: 14px; }
+    .social-ig { background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+    .social-fb { background: #1877f2; }
+    .social-tg { background: #2aabee; }
+    .social-tt { background: #010101; }
+    .social-web { background: var(--accent); }
+
+    .mini-actions { display: flex; gap: 7px; }
+    .mini-btn-primary {
+      flex: 1; background: var(--accent); color: white;
+      border: none; border-radius: 8px; padding: 9px 0;
+      font-family: 'Inter', sans-serif; font-size: 12px;
+      font-weight: 600; cursor: pointer; transition: opacity 0.2s;
+    }
+    .mini-btn-primary:hover { opacity: 0.85; }
+    .mini-btn-secondary {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 9px 10px;
+      font-family: 'Inter', sans-serif; font-size: 12px;
+      font-weight: 500; cursor: pointer; color: var(--text);
+    }
+    .mini-close {
+      position: absolute; top: 8px; right: 8px;
+      width: 22px; height: 22px;
+      background: var(--bg); border: none; border-radius: 50%;
+      cursor: pointer; font-size: 12px; color: var(--text3);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ─── PROFILE TAB ─── */
+    .profile-hero {
+      background: linear-gradient(135deg, var(--accent) 0%, #3d7a35 100%);
+      padding: 28px 20px 24px; color: white;
+    }
+    .profile-back {
+      background: rgba(255,255,255,0.2); border: none; color: white;
+      border-radius: 8px; padding: 6px 12px;
+      font-family: 'Inter', sans-serif; font-size: 13px;
+      cursor: pointer; margin-bottom: 16px;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .profile-emoji { font-size: 36px; margin-bottom: 10px; }
+    .profile-name { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .profile-cat { font-size: 14px; opacity: 0.8; margin-bottom: 12px; }
+    .profile-rating { display: flex; align-items: center; gap: 8px; }
+    .profile-score { font-size: 28px; font-weight: 700; }
+    .profile-stars { display: flex; gap: 3px; }
+    .profile-stars .star { font-size: 16px; color: var(--accent2); }
+    .profile-count { font-size: 13px; opacity: 0.7; }
+
+    .profile-tabs {
+      display: flex; background: var(--bg2);
+      border-bottom: 1px solid var(--border); padding: 0 16px;
+    }
+    .profile-tab {
+      padding: 12px 16px; font-family: 'Inter', sans-serif;
+      font-size: 13px; font-weight: 500; color: var(--text3);
+      background: none; border: none; border-bottom: 2px solid transparent;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .profile-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .profile-content { padding: 16px 20px; }
+
+    .section-title {
+      font-size: 14px; font-weight: 700; color: var(--text);
+      margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .info-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-icon { color: var(--accent); font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .info-label { color: var(--text3); font-size: 12px; }
+    .info-val { font-weight: 500; }
+
+    .event-card {
+      background: var(--bg); border-radius: var(--radius-sm);
+      padding: 14px; margin-bottom: 10px;
+      display: flex; gap: 12px; align-items: center;
+    }
+    .event-date {
+      background: var(--accent); color: white; border-radius: 8px;
+      padding: 6px 10px; text-align: center; font-size: 12px;
+      font-weight: 700; min-width: 44px;
+    }
+    .event-day { font-size: 18px; line-height: 1; }
+    .event-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+    .event-time { font-size: 12px; color: var(--text3); }
+    .event-price { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+
+    .menu-category { margin-bottom: 20px; }
+    .menu-cat-title {
+      font-size: 13px; font-weight: 700; color: var(--text3);
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+    }
+    .menu-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .menu-item:last-child { border-bottom: none; }
+    .menu-item-name { font-size: 14px; font-weight: 500; }
+    .menu-item-desc { font-size: 12px; color: var(--text3); margin-top: 2px; }
+    .menu-item-price { font-size: 14px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+
+    .review-item {
+      background: var(--bg); border-radius: var(--radius-sm);
+      padding: 10px 12px; margin-bottom: 8px;
+    }
+    .review-author { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+    .review-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
+    .reviews-label {
+      font-size: 12px; font-weight: 600; color: var(--text2);
+      margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      flex: 1; background: var(--accent); color: white; border: none;
+      border-radius: var(--radius-sm); padding: 13px;
+      font-family: 'Inter', sans-serif; font-size: 14px;
+      font-weight: 600; cursor: pointer; transition: opacity 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-secondary {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 13px 16px;
+      font-family: 'Inter', sans-serif; font-size: 14px;
+      font-weight: 500; cursor: pointer; color: var(--text);
+    }
+
+    /* Profile social row */
+    .profile-socials {
+      display: flex; gap: 8px; margin-top: 14px;
+    }
+    .profile-social-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.2); border: none; color: white;
+      border-radius: 8px; padding: 7px 12px;
+      font-family: 'Inter', sans-serif; font-size: 12px;
+      font-weight: 500; cursor: pointer; text-decoration: none;
+    }
+    .profile-social-btn svg { width: 14px; height: 14px; }
+
+    /* ─── AFISHA ─── */
+    .afisha-header { padding: 20px 20px 0; margin-bottom: 16px; }
+    .afisha-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .afisha-sub { font-size: 14px; color: var(--text3); }
+    .afisha-section { padding: 0 20px; margin-bottom: 24px; }
+    .afisha-card {
+      background: var(--bg2); border-radius: var(--radius);
+      overflow: hidden; margin-bottom: 12px; box-shadow: var(--shadow);
+    }
+    .afisha-card-img {
+      height: 120px; background: linear-gradient(135deg, var(--accent-light), #d4e8d0);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 48px; position: relative;
+    }
+    .afisha-badge {
+      position: absolute; top: 10px; left: 10px;
+      background: var(--accent); color: white; border-radius: 6px;
+      padding: 3px 8px; font-size: 11px; font-weight: 600;
+    }
+    .afisha-card-body { padding: 14px 16px; }
+    .afisha-card-name { font-size: 16px; font-weight: 700; margin-bottom: 5px; }
+    .afisha-card-meta { font-size: 12px; color: var(--text3); display: flex; gap: 12px; margin-bottom: 10px; }
+    .afisha-card-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+    .news-item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .news-item:last-child { border-bottom: none; }
+    .news-emoji {
+      width: 44px; height: 44px; background: var(--accent-light);
+      border-radius: var(--radius-sm); display: flex;
+      align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+    }
+    .news-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .news-desc { font-size: 12px; color: var(--text2); line-height: 1.4; }
+    .news-date { font-size: 11px; color: var(--text3); margin-top: 5px; }
+
+    /* ─── REVIEW MODAL ─── */
+    .review-modal {
+      position: fixed; inset: 0; z-index: 2000;
+      display: none; align-items: flex-end;
+    }
+    .review-modal.open { display: flex; }
+    .review-modal-overlay {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);
+    }
+    .review-modal-sheet {
+      position: relative; background: var(--bg2);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 20px; width: 100%; z-index: 1;
+    }
+    .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+    .star-picker { display: flex; gap: 8px; margin-bottom: 16px; }
+    .star-pick { font-size: 28px; cursor: pointer; color: var(--border); transition: color 0.15s; }
+    .star-pick.selected, .star-pick:hover { color: var(--accent2); }
+    .review-textarea {
+      width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 12px; font-family: 'Inter', sans-serif; font-size: 14px;
+      color: var(--text); background: var(--bg); resize: none; height: 100px;
+      margin-bottom: 14px; outline: none;
+    }
+    .review-textarea:focus { border-color: var(--accent); }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Leaflet overrides */
+    .leaflet-popup { display: none !important; }
+    .leaflet-control-zoom {
+      border: none !important; box-shadow: var(--shadow) !important;
+    }
+    .leaflet-control-zoom a {
+      border-radius: 8px !important; border: none !important;
+      color: var(--text) !important; font-size: 16px !important;
+    }
+    .leaflet-control-attribution { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo">Batumi<span>.</span>Guide</div>
+    <div class="header-city">🇬🇪 Батуми, Грузия</div>
+  </div>
+  <div class="tabs-nav">
+    <button class="tab-btn active" onclick="switchTab('map',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Карта
+    </button>
+    <button class="tab-btn" onclick="switchTab('profile',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      Заведение
+    </button>
+    <button class="tab-btn" onclick="switchTab('afisha',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Афиша
+    </button>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- MAP TAB -->
+  <div class="tab-panel active" id="tab-map">
+    <div class="filter-bar">
+      <button class="filter-chip active" onclick="filterPlaces('all',this)">🌍 Все</button>
+      <button class="filter-chip" onclick="filterPlaces('restaurant',this)">🍽️ Рестораны</button>
+      <button class="filter-chip" onclick="filterPlaces('cafe',this)">☕ Кофейни</button>
+      <button class="filter-chip" onclick="filterPlaces('club',this)">🎵 Клубы</button>
+      <button class="filter-chip" onclick="filterPlaces('casino',this)">🎰 Казино</button>
+      <button class="filter-chip" onclick="filterPlaces('bar',this)">🍸 Бары</button>
+    </div>
+
+    <div id="map"></div>
+    <div id="mapLoader" style="position:absolute;inset:0;background:rgba(248,247,244,0.85);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:none;">
+      <div style="width:36px;height:36px;border:3px solid #e0e0e0;border-top-color:#2d5a27;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+      <div style="font-size:13px;color:#6b6b6b;font-weight:500;">Загружаем карту…</div>
+    </div>
+
+    <!-- Mini floating card -->
+    <div class="mini-card" id="miniCard">
+      <button class="mini-close" onclick="closeMini()">✕</button>
+      <div class="mini-card-top">
+        <div class="mini-emoji" id="miniEmoji">🍽️</div>
+        <div>
+          <div class="mini-name" id="miniName">Название</div>
+          <div class="mini-cat" id="miniCat">Категория</div>
+        </div>
+      </div>
+      <div class="mini-stars" id="miniStars"></div>
+      <div class="mini-socials" id="miniSocials"></div>
+      <div class="mini-actions">
+        <button class="mini-btn-secondary" onclick="openReviewModal()">✏️</button>
+        <button class="mini-btn-primary" onclick="openProfile()">Открыть →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE TAB -->
+  <div class="tab-panel" id="tab-profile">
+    <div class="profile-hero">
+      <button class="profile-back" onclick="switchTab('map',document.querySelectorAll('.tab-btn')[0])">← На карту</button>
+      <div class="profile-emoji" id="profileEmoji">🍽️</div>
+      <div class="profile-name" id="profileName">Название</div>
+      <div class="profile-cat" id="profileCat">Категория</div>
+      <div class="profile-rating">
+        <div class="profile-score" id="profileScore">4.5</div>
+        <div class="profile-stars" id="profileStars"></div>
+        <div class="profile-count" id="profileCount">(128)</div>
+      </div>
+      <div class="profile-socials" id="profileSocials"></div>
+    </div>
+
+    <div class="profile-tabs">
+      <button class="profile-tab active" onclick="switchProfileTab('info',this)">Инфо</button>
+      <button class="profile-tab" onclick="switchProfileTab('events',this)">События</button>
+      <button class="profile-tab" onclick="switchProfileTab('menu',this)">Меню</button>
+      <button class="profile-tab" onclick="switchProfileTab('reviews',this)">Отзывы</button>
+    </div>
+
+    <div class="profile-content">
+      <div id="ptab-info"></div>
+      <div id="ptab-events" style="display:none"></div>
+      <div id="ptab-menu" style="display:none"></div>
+      <div id="ptab-reviews" style="display:none">
+        <div id="profileReviews"></div>
+        <div style="margin-top:14px">
+          <button class="btn-primary" onclick="openReviewModal()" style="width:100%">✏️ Написать отзыв</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AFISHA TAB -->
+  <div class="tab-panel" id="tab-afisha">
+    <div class="afisha-header">
+      <div class="afisha-title">Афиша</div>
+      <div class="afisha-sub">Апрель 2026 · Батуми</div>
+    </div>
+    <div class="afisha-section">
+      <div class="section-title">🔥 Ближайшие события</div>
+      <div class="afisha-card">
+        <div class="afisha-card-img">🎶<div class="afisha-badge">Концерт</div></div>
+        <div class="afisha-card-body">
+          <div class="afisha-card-name">Jazz Night на бульваре</div>
+          <div class="afisha-card-meta"><span>📅 5 апр</span><span>🕗 21:00</span><span>📍 Chacha Time</span></div>
+          <div class="afisha-card-desc">Живой джаз под открытым небом, вход свободный.</div>
+        </div>
+      </div>
+      <div class="afisha-card">
+        <div class="afisha-card-img" style="background:linear-gradient(135deg,#fde8e8,#ffd4d4)">🎪<div class="afisha-badge" style="background:#c0392b">Вечеринка</div></div>
+        <div class="afisha-card-body">
+          <div class="afisha-card-name">Techno Night · Moon Club</div>
+          <div class="afisha-card-meta"><span>📅 6 апр</span><span>🕗 23:00</span><span>💳 30 ₾</span></div>
+          <div class="afisha-card-desc">Техно-резидент вечеринка в главном клубе Батуми.</div>
+        </div>
+      </div>
+      <div class="afisha-card">
+        <div class="afisha-card-img" style="background:linear-gradient(135deg,#e8f0ff,#d0deff)">🍷<div class="afisha-badge" style="background:#6366f1">Дегустация</div></div>
+        <div class="afisha-card-body">
+          <div class="afisha-card-name">Грузинское вино: мастер-класс</div>
+          <div class="afisha-card-meta"><span>📅 8 апр</span><span>🕖 18:00</span><span>💳 45 ₾</span></div>
+          <div class="afisha-card-desc">8 сортов натурального грузинского вина с сомелье.</div>
+        </div>
+      </div>
+      <div class="afisha-card">
+        <div class="afisha-card-img" style="background:linear-gradient(135deg,#fff8e1,#ffe8a0)">🎰<div class="afisha-badge" style="background:#f39c12">Турнир</div></div>
+        <div class="afisha-card-body">
+          <div class="afisha-card-name">Poker Tournament · Eclipse Casino</div>
+          <div class="afisha-card-meta"><span>📅 12 апр</span><span>🕖 19:00</span><span>💳 200 ₾ buy-in</span></div>
+          <div class="afisha-card-desc">Открытый покерный турнир, призовой фонд от 5000 ₾.</div>
+        </div>
+      </div>
+    </div>
+    <div class="afisha-section">
+      <div class="section-title">📰 Новости</div>
+      <div class="news-item">
+        <div class="news-emoji">🏖️</div>
+        <div>
+          <div class="news-name">Открытие пляжного сезона — 15 мая</div>
+          <div class="news-desc">Мэрия Батуми объявила официальное открытие с концертом на бульваре.</div>
+          <div class="news-date">2 апреля 2026</div>
+        </div>
+      </div>
+      <div class="news-item">
+        <div class="news-emoji">🎪</div>
+        <div>
+          <div class="news-name">Batumi Art Week 2026</div>
+          <div class="news-desc">Городской фестиваль современного искусства пройдёт с 18 по 25 апреля.</div>
+          <div class="news-date">30 марта 2026</div>
+        </div>
+      </div>
+      <div class="news-item">
+        <div class="news-emoji">☕</div>
+        <div>
+          <div class="news-name">Kava Lova — лучшая кофейня по версии читателей</div>
+          <div class="news-desc">Батумская specialty-кофейня заняла 1-е место в народном голосовании 2026.</div>
+          <div class="news-date">28 марта 2026</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REVIEW MODAL -->
+<div class="review-modal" id="reviewModal">
+  <div class="review-modal-overlay" onclick="closeReviewModal()"></div>
+  <div class="review-modal-sheet">
+    <div class="modal-title">Написать отзыв</div>
+    <div class="star-picker" id="starPicker">
+      <span class="star-pick" onclick="setStars(1)">★</span>
+      <span class="star-pick" onclick="setStars(2)">★</span>
+      <span class="star-pick" onclick="setStars(3)">★</span>
+      <span class="star-pick" onclick="setStars(4)">★</span>
+      <span class="star-pick" onclick="setStars(5)">★</span>
+    </div>
+    <textarea class="review-textarea" id="reviewText" placeholder="Расскажите о своём впечатлении..."></textarea>
+    <button class="btn-primary" onclick="submitReview()" style="width:100%">Опубликовать</button>
+  </div>
+</div>
+
+<script>
+// ─── TELEGRAM MINI APP INIT ──────────────────────────────────────────────
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand(); // на весь экран
+  tg.disableVerticalSwipes(); // не закрывать свайпом вниз
+
+  // Подстраиваем цвет хедера под тему Telegram
+  if (tg.headerColor !== undefined) {
+    tg.setHeaderColor('#ffffff');
+    tg.setBackgroundColor('#f8f7f4');
+  }
+}
+
+// ─── SVG ICONS ───────────────────────────────────────────────────────────
+const SVG = {
+  ig: `<svg viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>`,
+  fb: `<svg viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`,
+  tg: `<svg viewBox="0 0 24 24" fill="white"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>`,
+  tt: `<svg viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.79 1.53V6.77a4.85 4.85 0 01-1.02-.08z"/></svg>`,
+  web: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>`
+};
+
+function socialIcon(type, url, label) {
+  const cls = { ig:'social-ig', fb:'social-fb', tg:'social-tg', tt:'social-tt', web:'social-web' }[type] || 'social-web';
+  return `<a href="${url}" target="_blank" class="social-icon ${cls}" title="${label}">${SVG[type]}</a>`;
+}
+
+// ─── PLACES (динамически из Overpass, ниже — fallback) ───────────────────
+let places = [];
+
+// ─── FALLBACK: кураторский список на случай офлайн / ошибки сети ─────────
+const FALLBACK_PLACES = [
+  // ── РЕСТОРАНЫ ──
+  {
+    id:1, name:"Iveria Beach Restaurant", emoji:"🌊", category:"restaurant",
+    lat:41.6475, lng:41.6279,
+    rating:4.7, reviewCount:512,
+    address:"Площадь Чудес, Приморский бульвар", hours:"12:00 – 23:00", price:"$$$",
+    tags:["Морепродукты","На бульваре","Живая музыка"],
+    phone:"+995 422 27-55-55",
+    social:{ ig:"https://www.instagram.com/iveria_georgian_rest/" },
+    reviews:[
+      {author:"Алексей М.", text:"Лучший вид на море в городе. Осьминог гриль — шедевр!", stars:5},
+      {author:"Юля С.", text:"Романтическое место, подача блюд на высоте.", stars:5}
+    ],
+    events:[{day:"9",month:"АПР",name:"Seafood Night",time:"19:00 – 22:00",price:"Вход свободный"}],
+    menu:{"Морепродукты":[
+      {name:"Мидии в белом вине",desc:"400г, чесночный соус, тосты",price:"32 ₾"},
+      {name:"Осьминог гриль",desc:"С оливковым маслом и лимоном",price:"55 ₾"}
+    ],"Основные":[
+      {name:"Хачапури по-аджарски",desc:"Классический, с яйцом",price:"16 ₾"}
+    ]}
+  },
+  {
+    id:2, name:"Ocean Market Cafe", emoji:"🐟", category:"restaurant",
+    lat:41.6488, lng:41.6370,
+    rating:4.6, reviewCount:387,
+    address:"ул. Горгиладзе 39", hours:"10:00 – 22:00", price:"$$",
+    tags:["Свежая рыба","Морепродукты","Рынок-кафе"],
+    phone:"+995 555 10-20-30",
+    social:{ ig:"https://www.instagram.com/ocean.batumi/", fb:"https://www.facebook.com" },
+    reviews:[
+      {author:"Дима В.", text:"Выбираешь рыбу сам — готовят при тебе. Свежее не бывает!",stars:5},
+      {author:"Катя Р.", text:"Невероятная форель и дорадо, цены разумные.",stars:4}
+    ],
+    events:[],
+    menu:{"Рыба на гриле":[
+      {name:"Форель",desc:"Целая рыба на гриле, 400-500г",price:"38 ₾"},
+      {name:"Дорадо",desc:"С лимоном и зеленью",price:"44 ₾"}
+    ]}
+  },
+  {
+    id:3, name:"Baraka Restaurant", emoji:"🫕", category:"restaurant",
+    lat:41.6455, lng:41.6352,
+    rating:4.3, reviewCount:218,
+    address:"ул. Чавчавадзе 39", hours:"12:00 – 23:00", price:"$$",
+    tags:["Турецкая кухня","Халяль","Мангал"],
+    phone:"+995 422 27-00-01",
+    social:{ ig:"https://www.instagram.com/barakaturkmutfagi/", fb:"https://www.facebook.com/BatumBarakaRestaurant/" },
+    reviews:[
+      {author:"Рустам Н.", text:"Отличный шашлык и восточные закуски, хороший сервис.",stars:4},
+      {author:"Мария Т.", text:"Хумус и пита — просто объедение.",stars:5}
+    ],
+    events:[],
+    menu:{"Мангал":[
+      {name:"Адана кебаб",desc:"Фарш из баранины на углях",price:"26 ₾"},
+      {name:"Лула-кебаб",desc:"Говядина, специи",price:"22 ₾"}
+    ],"Закуски":[
+      {name:"Хумус",desc:"С оливковым маслом и паприкой",price:"12 ₾"}
+    ]}
+  },
+
+  // ── КОФЕЙНИ ──
+  {
+    id:4, name:"Kava Lova", emoji:"☕", category:"cafe",
+    lat:41.6526, lng:41.6384,
+    rating:4.9, reviewCount:841,
+    address:"ул. Зубалашвили 31", hours:"08:00 – 21:00", price:"$",
+    tags:["Specialty coffee","Завтраки","Топ-1 Батуми"],
+    phone:"+995 555 12-34-56",
+    social:{ ig:"https://www.instagram.com/kava.lova.ge/", tg:"https://t.me" },
+    reviews:[
+      {author:"Настя Л.", text:"Лучший specialty-кофе в городе. Сюда приходят настоящие ценители.",stars:5},
+      {author:"Стас М.", text:"Кемекс, эфиопика, авокадо-тост — идеальное утро!",stars:5}
+    ],
+    events:[{day:"10",month:"АПР",name:"Каппинг-сессия",time:"11:00 – 13:00",price:"20 ₾"}],
+    menu:{"Кофе":[
+      {name:"Флэт уайт",desc:"Двойной шот + молоко",price:"8 ₾"},
+      {name:"Кемекс",desc:"Эфиопия, ягодный профиль",price:"10 ₾"}
+    ],"Еда":[
+      {name:"Авокадо-тост",desc:"На соурдоу с рикоттой",price:"16 ₾"}
+    ]}
+  },
+  {
+    id:5, name:"Magnolia Buffet Café", emoji:"🌸", category:"cafe",
+    lat:41.6468, lng:41.6362,
+    rating:4.5, reviewCount:423,
+    address:"ул. Химшиашвили 4", hours:"08:00 – 01:00", price:"$$",
+    tags:["Завтраки","Шведский стол","Круглосуточно"],
+    phone:"+995 551 71-31-19",
+    social:{ ig:"https://www.instagram.com/magnolia.buffet_batumi/" },
+    reviews:[
+      {author:"Лена Б.", text:"Огромный выбор блюд, отличный завтрак. Идеально для семьи.",stars:4},
+      {author:"Иван К.", text:"Шведский стол очень разнообразный, цена адекватная.",stars:4}
+    ],
+    events:[],
+    menu:{"Буфет":[
+      {name:"Завтрак",desc:"Безлимитный шведский стол",price:"25 ₾"},
+      {name:"Обед/ужин",desc:"Горячее, салаты, выпечка",price:"35 ₾"}
+    ]}
+  },
+
+  // ── КЛУБЫ ──
+  {
+    id:6, name:"Moon Night Club", emoji:"🌙", category:"club",
+    lat:41.6437, lng:41.6302,
+    rating:4.8, reviewCount:934,
+    address:"ул. Лех и Мария Качиньски 1", hours:"22:00 – 06:00", price:"$$$",
+    tags:["Лучший клуб Батуми","Techno","House","VIP"],
+    phone:"+995 557 99-66-99",
+    social:{ ig:"https://www.instagram.com/moon_club_batumi/", fb:"https://www.facebook.com/moon.club.batumi/", web:"https://moonclub.ge" },
+    reviews:[
+      {author:"Артём Н.", text:"Лучший клуб на Чёрном море — звук, атмосфера, публика всё 10/10.",stars:5},
+      {author:"Катя П.", text:"Была в субботу — очередь, но внутри того стоит!",stars:5}
+    ],
+    events:[
+      {day:"6",month:"АПР",name:"Resident Night · DJ MAKO",time:"23:00 – ?",price:"30 ₾"},
+      {day:"13",month:"АПР",name:"Rave Garden Open Air",time:"22:00 – ?",price:"40 ₾"}
+    ],
+    menu:{"Напитки":[
+      {name:"Gin & Tonic",desc:"House gin, тоник, цитрус",price:"22 ₾"},
+      {name:"Bottle Service",desc:"Grey Goose + миксеры",price:"от 300 ₾"}
+    ]}
+  },
+  {
+    id:7, name:"Harbor Club", emoji:"⚓", category:"club",
+    lat:41.6450, lng:41.6283,
+    rating:4.5, reviewCount:487,
+    address:"Приморский бульвар (у пирса)", hours:"22:00 – 05:00", price:"$$",
+    tags:["На бульваре","Электронная музыка","Guest DJs"],
+    phone:"+995 557 55-66-77",
+    social:{ ig:"https://www.instagram.com/harbor_btm/", tt:"https://www.tiktok.com" },
+    reviews:[
+      {author:"Паша Г.", text:"Beats + волны = идеальная пятница. Лучший аутдор-клуб Батуми.",stars:5},
+      {author:"Таня В.", text:"Классные гест-диджеи, атмосфера на набережной — нет слов.",stars:5}
+    ],
+    events:[{day:"5",month:"АПР",name:"Friday Beach Rave",time:"22:00 – ?",price:"25 ₾"}],
+    menu:{"Напитки":[
+      {name:"Коктейли",desc:"House selection",price:"18 ₾"},
+      {name:"Beer",desc:"Craft",price:"10 ₾"}
+    ]}
+  },
+
+  // ── КАЗИНО ──
+  {
+    id:8, name:"Eclipse Casino", emoji:"🎰", category:"casino",
+    lat:41.6433, lng:41.6306,
+    rating:4.7, reviewCount:621,
+    address:"ул. Лех и Мария Качиньски 1", hours:"24/7", price:"$$$$",
+    tags:["Крупнейшее казино Грузии","Poker","Рулетка","VIP"],
+    phone:"+995 557 11-00-00",
+    social:{ ig:"https://www.instagram.com/eclipse.casino/", web:"https://eclipse.casino" },
+    reviews:[
+      {author:"Виктор П.", text:"Огромное казино, тысячи слотов, профи-крупье. Обслуживание отличное.",stars:5},
+      {author:"Ольга Р.", text:"VIP-зал на высоте, ресторан внутри тоже вкусный.",stars:4}
+    ],
+    events:[{day:"12",month:"АПР",name:"Poker Tournament",time:"19:00",price:"200 ₾ buy-in"}],
+    menu:{"Бар":[
+      {name:"Whiskey",desc:"Single malt selection",price:"35 ₾"},
+      {name:"Cocktails",desc:"Classic & signature",price:"25 ₾"}
+    ]}
+  },
+  {
+    id:9, name:"Casino International (Hilton)", emoji:"🎲", category:"casino",
+    lat:41.6490, lng:41.6259,
+    rating:4.5, reviewCount:312,
+    address:"пр. Шота Руставели 40 (Hilton)", hours:"24/7", price:"$$$$",
+    tags:["Отельное казино","Blackjack","Рулетка","Luxury"],
+    phone:"+995 422 22-88-88",
+    social:{ ig:"https://www.instagram.com/eclipse.center/", web:"https://cibatumi.com" },
+    reviews:[
+      {author:"Сергей Т.", text:"Элегантный интерьер, профессиональные крупье. Приятная атмосфера.",stars:5},
+      {author:"Анна М.", text:"Blackjack-столы хорошие, Minimum bid адекватный.",stars:4}
+    ],
+    events:[{day:"20",month:"АПР",name:"VIP Blackjack Night",time:"20:00",price:"По приглашению"}],
+    menu:{"Ресторан":[
+      {name:"Стейк Рибай",desc:"350г, средней прожарки",price:"65 ₾"},
+      {name:"Паста",desc:"Карбонара / Труффель",price:"28 ₾"}
+    ]}
+  },
+
+  // ── БАРЫ ──
+  {
+    id:10, name:"Chacha Time", emoji:"🥃", category:"bar",
+    lat:41.6514, lng:41.6392,
+    rating:4.8, reviewCount:1243,
+    address:"ул. Мазниашвили (Старый город)", hours:"12:00 – 02:00", price:"$$",
+    tags:["Культовое место","Чача","Коктейли","Старый город"],
+    phone:"+995 555 44-55-66",
+    social:{ ig:"https://www.instagram.com/chachatime.batumi/", tt:"https://www.tiktok.com" },
+    reviews:[
+      {author:"Борис А.", text:"Если вы в Батуми — вы обязаны зайти. Лучший бар старого города.",stars:5},
+      {author:"Карина М.", text:"Атмосфера сказочная, уличный дворик с виноградом — мечта.",stars:5}
+    ],
+    events:[{day:"11",month:"АПР",name:"Chacha Night",time:"20:00 – 00:00",price:"Вход свободный"}],
+    menu:{"Чача & коктейли":[
+      {name:"Чача Shot",desc:"Домашняя виноградная",price:"6 ₾"},
+      {name:"Chacha Sour",desc:"Чача, лимон, мёд",price:"14 ₾"},
+      {name:"Georgian Mule",desc:"Чача, имбирное пиво, лайм",price:"16 ₾"}
+    ]}
+  },
+  {
+    id:11, name:"Royal Sky Bar", emoji:"🌅", category:"bar",
+    lat:41.6479, lng:41.6340,
+    rating:4.7, reviewCount:567,
+    address:"ул. Николоз Бараташвили 17 (18 этаж)", hours:"20:00 – 04:00", price:"$$$",
+    tags:["Руфтоп","Панорама 360°","Ночной клуб","Sunset"],
+    phone:"+995 555 71-00-00",
+    social:{ ig:"https://www.instagram.com/royal_sky_batumi/", fb:"https://www.facebook.com" },
+    reviews:[
+      {author:"Максим Д.", text:"Вид с 18 этажа на весь Батуми и море — бесценно. Cocktails топ.",stars:5},
+      {author:"Саша Е.", text:"Идеальное место для заката. Обязательно резервируйте столик.",stars:5}
+    ],
+    events:[{day:"7",month:"АПР",name:"Sunset DJ Set",time:"19:00 – 22:00",price:"Вход свободный"}],
+    menu:{"Коктейли":[
+      {name:"Sky Sunset",desc:"Aperol, Campari, Prosecco",price:"24 ₾"},
+      {name:"Georgian Mule",desc:"Чача, имбирное пиво, лайм",price:"20 ₾"}
+    ]}
+  },
+  {
+    id:12, name:"Meow Bar", emoji:"🐱", category:"bar",
+    lat:41.6471, lng:41.6278,
+    rating:4.6, reviewCount:389,
+    address:"ул. Руставели 22 (центр)", hours:"18:00 – 03:00", price:"$$",
+    tags:["Коктейли","Кот-тематика","Атмосферно","Хипстерское"],
+    phone:"+995 558 11-22-33",
+    social:{ ig:"https://www.instagram.com/meowbar_batumi/", tt:"https://www.tiktok.com" },
+    reviews:[
+      {author:"Юля Н.", text:"Самые необычные коктейли в городе! Интерьер — инста-мечта.",stars:5},
+      {author:"Паша К.", text:"Барыги-коты встречают как дома. Обязательно попробуй подпись Meow Sour.",stars:4}
+    ],
+    events:[],
+    menu:{"Коктейли":[
+      {name:"Meow Sour",desc:"Джин, малина, лимон, яичный белок",price:"18 ₾"},
+      {name:"Purr Negroni",desc:"Джин, Campari, Vermouth",price:"20 ₾"}
+    ]}
+  },
+  {
+    id:13, name:"Conte Bar", emoji:"🎨", category:"bar",
+    lat:41.6502, lng:41.6402,
+    rating:4.5, reviewCount:298,
+    address:"ул. Звиад Гамсахурдия 1/5 (Старый город)", hours:"12:00 – 00:00", price:"$$",
+    tags:["Арт-бар","Культурная площадка","Выставки","Старый город"],
+    phone:"+995 422 27-44-44",
+    social:{ ig:"https://www.instagram.com", fb:"https://www.facebook.com" },
+    reviews:[
+      {author:"Рита В.", text:"Уникальное место — арт-галерея и бар в одном. Красные стулья — икона.",stars:5},
+      {author:"Дима А.", text:"Сюда приходят художники и местные интеллектуалы. Атмосфера особая.",stars:4}
+    ],
+    events:[{day:"8",month:"АПР",name:"Выставка местных художников",time:"18:00 – 21:00",price:"Вход свободный"}],
+    menu:{"Напитки":[
+      {name:"Домашнее вино",desc:"Красное/белое, кахетинское",price:"8 ₾ бокал"},
+      {name:"Нegroni",desc:"Классический",price:"16 ₾"}
+    ]}
+  },
+  {
+    id:14, name:"Porto Beach Resort & Bar", emoji:"🏖️", category:"bar",
+    lat:41.6419, lng:41.6273,
+    rating:4.4, reviewCount:412,
+    address:"Пляжная зона, Батуми", hours:"10:00 – 23:00", price:"$$",
+    tags:["Пляжный бар","Коктейли у моря","Шезлонги"],
+    phone:"+995 595 33-44-55",
+    social:{ ig:"https://www.instagram.com/porto_beachresort/", tt:"https://www.tiktok.com" },
+    reviews:[
+      {author:"Толя С.", text:"Лежаки, море, коктейль в руке — что ещё нужно?",stars:5},
+      {author:"Лиза Ф.", text:"Лучший пляжный бар Батуми. Sunset здесь нереальный.",stars:4}
+    ],
+    events:[{day:"19",month:"АПР",name:"Пляжная вечеринка",time:"17:00 – 22:00",price:"Вход свободный"}],
+    menu:{"Коктейли":[
+      {name:"Piña Colada",desc:"Ром, кокос, ананас",price:"18 ₾"},
+      {name:"Aperol Spritz",desc:"Классический",price:"16 ₾"}
+    ]}
+  },
+  {
+    id:15, name:"Clouds Bar (Radisson 360°)", emoji:"☁️", category:"bar",
+    lat:41.6536, lng:41.6377,
+    rating:4.6, reviewCount:334,
+    address:"ул. Ниношвили 1, Radisson Blu (18 этаж)", hours:"18:00 – 02:00", price:"$$$",
+    tags:["Руфтоп","Radisson","Вид на море","360°"],
+    phone:"+995 422 23-33-33",
+    social:{ ig:"https://www.instagram.com", web:"https://www.radissonhotels.com" },
+    reviews:[
+      {author:"Стас Б.", text:"Лучший вид на Батуми ночью. Коктейли дорогие, но того стоят.",stars:5},
+      {author:"Надя Ж.", text:"Панорамный бар над всем городом. Романтично до слёз.",stars:5}
+    ],
+    events:[],
+    menu:{"Коктейли":[
+      {name:"Clouds Spritz",desc:"Просекко, Elderflower, цитрус",price:"28 ₾"},
+      {name:"Black Sea Sour",desc:"Виски, чай, лимон",price:"26 ₾"}
+    ]}
+  }
+];
+
+// ─── OVERPASS API — загрузка реальных заведений из OpenStreetMap ──────────
+const OVERPASS_QUERY = `[out:json][timeout:30];
+(
+  node["amenity"~"restaurant|cafe|bar|nightclub|casino|pub|fast_food"](around:4000,41.6468,41.6368);
+  way["amenity"~"restaurant|cafe|bar|nightclub|casino|pub|fast_food"](around:4000,41.6468,41.6368);
+);
+out center body;`;
+
+const AMENITY_MAP = {
+  restaurant: { category:'restaurant', emoji:'🍽️' },
+  cafe:       { category:'cafe',       emoji:'☕'  },
+  bar:        { category:'bar',        emoji:'🍸'  },
+  pub:        { category:'bar',        emoji:'🍺'  },
+  nightclub:  { category:'club',       emoji:'🎵'  },
+  casino:     { category:'casino',     emoji:'🎰'  },
+  fast_food:  { category:'restaurant', emoji:'🍔'  },
+};
+
+function osmToPlace(el, id) {
+  const tags = el.tags || {};
+  // Prefer English name, then transliterated, then original
+  const name = tags['name:en'] || tags['name:ru'] || tags.name;
+  if (!name) return null;
+  const lat = el.lat ?? el.center?.lat;
+  const lng = el.lon ?? el.center?.lon;
+  if (!lat || !lng) return null;
+
+  const info = AMENITY_MAP[tags.amenity] || { category:'restaurant', emoji:'🍽️' };
+
+  const addrParts = [tags['addr:street'], tags['addr:housenumber']].filter(Boolean);
+  const address = addrParts.length ? addrParts.join(' ') : 'Батуми, Грузия';
+
+  const social = {};
+  const web = tags.website || tags['contact:website'] || tags['contact:url'];
+  if (web) social.web = web.startsWith('http') ? web : 'https://' + web;
+  const ig = tags['contact:instagram'];
+  if (ig) social.ig = ig.startsWith('http') ? ig : 'https://instagram.com/' + ig.replace('@','');
+  const fb = tags['contact:facebook'];
+  if (fb) social.fb = fb.startsWith('http') ? fb : 'https://facebook.com/' + fb;
+
+  const rating = parseFloat((4.0 + Math.random() * 0.9).toFixed(1));
+  const reviewCount = Math.floor(30 + Math.random() * 600);
+
+  const cuisineTags = (tags.cuisine || '').split(';').map(c => c.trim()).filter(Boolean);
+
+  return {
+    id, name, emoji: info.emoji, category: info.category,
+    lat, lng, rating, reviewCount,
+    address, hours: tags.opening_hours || '—', price: '$$',
+    phone: tags.phone || tags['contact:phone'] || '—',
+    tags: cuisineTags.length ? cuisineTags : [tags.amenity],
+    social, reviews: [], events: [], menu: null,
+    osmId: el.id
+  };
+}
+
+async function loadFromOverpass() {
+  const res = await fetch('https://overpass-api.de/api/interpreter', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'data=' + encodeURIComponent(OVERPASS_QUERY)
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  return data.elements || [];
+}
+
+// ─── CATEGORY CONFIG ─────────────────────────────────────────────────────
+const catColors = { restaurant:"#2d5a27", cafe:"#8b5e3c", club:"#6b35a8", casino:"#c8a000", bar:"#b03060" };
+const catBg     = { restaurant:"#e8f0e6", cafe:"#f5ece5", club:"#ede8f5", casino:"#faf5e0", bar:"#f5e8ee" };
+const catLabel  = { restaurant:"Ресторан", cafe:"Кофейня", club:"Клуб", casino:"Казино", bar:"Бар" };
+
+// ─── STATE ───────────────────────────────────────────────────────────────
+let map, clusterGroup, markers=[], currentPlace=null, selectedStars=0;
+
+// ─── STATUS BAR ──────────────────────────────────────────────────────────
+function showStatus(msg, isError) {
+  let bar = document.getElementById('geoStatus');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'geoStatus';
+    bar.style.cssText = 'position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:1002;background:#1a1a1a;color:white;padding:8px 16px;border-radius:20px;font-size:12px;pointer-events:none;transition:opacity 0.3s;white-space:nowrap;';
+    document.getElementById('tab-map').appendChild(bar);
+  }
+  bar.textContent = msg;
+  bar.style.opacity = '1';
+  if (!isError) setTimeout(() => { bar.style.opacity='0'; }, 3000);
+}
+
+// ─── INIT MAP ────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(async () => {
+    map = L.map('map', { zoomControl:false, attributionControl:false })
+           .setView([41.6468, 41.6368], 14);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom:19 }).addTo(map);
+    L.control.zoom({ position:'bottomright' }).addTo(map);
+
+    clusterGroup = L.markerClusterGroup({
+      maxClusterRadius: 50,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      iconCreateFunction: function(cluster) {
+        const count = cluster.getChildCount();
+        return L.divIcon({
+          html: `<div style="width:36px;height:36px;border-radius:50%;background:#2d5a27;color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;font-family:Inter,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">${count}</div>`,
+          className: '', iconSize: [36,36], iconAnchor: [18,18]
+        });
+      }
+    });
+    map.addLayer(clusterGroup);
+
+    map.on('click', closeMini);
+    map.on('dragstart', closeMini);
+
+    setTimeout(() => map.invalidateSize(), 200);
+
+    // ── Загрузка из Overpass (реальные данные OSM) ──────────────────────
+    showStatus('🔍 Загружаем заведения из OpenStreetMap…');
+
+    try {
+      const elements = await loadFromOverpass();
+      let id = 1;
+      for (const el of elements) {
+        const place = osmToPlace(el, id);
+        if (place) {
+          places.push(place);
+          addMarker(place);
+          id++;
+        }
+      }
+      if (places.length === 0) throw new Error('empty');
+      document.getElementById('mapLoader').style.display = 'none';
+      showStatus('✅ Загружено ' + places.length + ' заведений из OpenStreetMap');
+    } catch(err) {
+      // Fallback на кураторский список
+      places.length = 0;
+      FALLBACK_PLACES.forEach(p => { places.push(p); addMarker(p); });
+      document.getElementById('mapLoader').style.display = 'none';
+      showStatus('📍 ' + places.length + ' заведений (офлайн-режим)');
+    }
+  }, 100);
+});
+
+function addMarker(place) {
+  const color = catColors[place.category] || '#333';
+  const icon = L.divIcon({
+    className:'',
+    html:`<div style="width:32px;height:32px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;font-size:15px;">${place.emoji}</div>`,
+    iconSize:[32,32], iconAnchor:[16,16]
+  });
+  const m = L.marker([place.lat, place.lng], { icon });
+  m.on('click', (e) => { L.DomEvent.stopPropagation(e); openMini(place, m); });
+  m.placeData = place;
+  markers.push(m);
+  clusterGroup.addLayer(m);
+}
+
+// ─── MINI CARD ───────────────────────────────────────────────────────────
+function openMini(place, marker) {
+  currentPlace = place;
+  const card = document.getElementById('miniCard');
+
+  // Position card at marker screen coords
+  const pt = map.latLngToContainerPoint([place.lat, place.lng]);
+  card.style.left = pt.x + 'px';
+  card.style.top  = pt.y + 'px';
+
+  // Fill content
+  document.getElementById('miniEmoji').textContent = place.emoji;
+  document.getElementById('miniEmoji').style.background = catBg[place.category];
+  document.getElementById('miniName').textContent = place.name;
+  document.getElementById('miniCat').textContent = (catLabel[place.category] || '') + ' · ' + place.hours;
+
+  // Stars
+  const starsEl = document.getElementById('miniStars');
+  let starsHtml = '';
+  for(let i=1;i<=5;i++) starsHtml += `<span class="mini-star${i>Math.round(place.rating)?' empty':''}">★</span>`;
+  starsHtml += `<span class="mini-rating-val">${place.rating}</span><span class="mini-rating-cnt">(${place.reviewCount})</span>`;
+  starsEl.innerHTML = starsHtml;
+
+  // Social icons
+  const socEl = document.getElementById('miniSocials');
+  let socHtml = '';
+  const s = place.social || {};
+  if(s.ig)  socHtml += socialIcon('ig',  s.ig,  'Instagram');
+  if(s.fb)  socHtml += socialIcon('fb',  s.fb,  'Facebook');
+  if(s.tg)  socHtml += socialIcon('tg',  s.tg,  'Telegram');
+  if(s.tt)  socHtml += socialIcon('tt',  s.tt,  'TikTok');
+  if(s.web) socHtml += socialIcon('web', s.web, 'Сайт');
+  socEl.innerHTML = socHtml;
+
+  card.classList.add('open');
+
+  // Keep card in bounds
+  requestAnimationFrame(() => keepInBounds(card, pt));
+
+  // Update card position on map move
+  map.off('move', onMapMove);
+  map.on('move', onMapMove);
+}
+
+function onMapMove() {
+  if(!currentPlace) return;
+  const card = document.getElementById('miniCard');
+  if(!card.classList.contains('open')) return;
+  const pt = map.latLngToContainerPoint([currentPlace.lat, currentPlace.lng]);
+  card.style.left = pt.x + 'px';
+  card.style.top  = pt.y + 'px';
+  keepInBounds(card, pt);
+}
+
+function keepInBounds(card, pt) {
+  const mapEl = document.getElementById('map');
+  const mw = mapEl.offsetWidth;
+  const cw = card.offsetWidth;
+  // Horizontal clamp
+  let x = pt.x - cw/2;
+  x = Math.max(8, Math.min(x, mw - cw - 8));
+  card.style.left = (x + cw/2) + 'px'; // keep transform-origin correct
+  card.style.transform = `translate(${x - pt.x + cw/2}px, calc(-100% - 52px))`;
+}
+
+function closeMini() {
+  document.getElementById('miniCard').classList.remove('open');
+  map && map.off('move', onMapMove);
+}
+
+// ─── FILTER ──────────────────────────────────────────────────────────────
+function filterPlaces(cat, btn) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  closeMini();
+  clusterGroup.clearLayers();
+  markers.forEach(m => {
+    if (cat === 'all' || m.placeData.category === cat) {
+      clusterGroup.addLayer(m);
+    }
+  });
+}
+
+// ─── PROFILE ────────────────────────────────────────────────────────────
+function openProfile() {
+  if(!currentPlace) return;
+  const p = currentPlace;
+  document.getElementById('profileEmoji').textContent = p.emoji;
+  document.getElementById('profileName').textContent  = p.name;
+  document.getElementById('profileCat').textContent   = catLabel[p.category] || '';
+  document.getElementById('profileScore').textContent = p.rating;
+  document.getElementById('profileCount').textContent = `(${p.reviewCount} отзывов)`;
+
+  let stHtml='';
+  for(let i=1;i<=5;i++) stHtml += `<span class="star"${i>Math.round(p.rating)?' style="color:var(--border)"':''}>★</span>`;
+  document.getElementById('profileStars').innerHTML = stHtml;
+
+  // Profile social buttons
+  const ps = document.getElementById('profileSocials');
+  const s = p.social||{};
+  let psh='';
+  if(s.ig)  psh+=`<a href="${s.ig}"  target="_blank" class="profile-social-btn">${SVG.ig}  Instagram</a>`;
+  if(s.fb)  psh+=`<a href="${s.fb}"  target="_blank" class="profile-social-btn">${SVG.fb}  Facebook</a>`;
+  if(s.tg)  psh+=`<a href="${s.tg}"  target="_blank" class="profile-social-btn">${SVG.tg}  Telegram</a>`;
+  if(s.tt)  psh+=`<a href="${s.tt}"  target="_blank" class="profile-social-btn">${SVG.tt}  TikTok</a>`;
+  if(s.web) psh+=`<a href="${s.web}" target="_blank" class="profile-social-btn">${SVG.web} Сайт</a>`;
+  ps.innerHTML = psh;
+
+  // Info
+  document.getElementById('ptab-info').innerHTML = `
+    <div class="info-row"><span class="info-icon">📍</span><div><div class="info-label">Адрес</div><div class="info-val">${p.address}</div></div></div>
+    <div class="info-row"><span class="info-icon">🕐</span><div><div class="info-label">Часы работы</div><div class="info-val">${p.hours}</div></div></div>
+    <div class="info-row"><span class="info-icon">📞</span><div><div class="info-label">Телефон</div><div class="info-val">${p.phone}</div></div></div>
+    <div class="info-row"><span class="info-icon">💰</span><div><div class="info-label">Ценовой сегмент</div><div class="info-val">${p.price}</div></div></div>
+    <div class="info-row"><span class="info-icon">🏷️</span><div><div class="info-label">Теги</div><div class="info-val">${p.tags.join(', ')}</div></div></div>`;
+
+  // Events
+  const evEl = document.getElementById('ptab-events');
+  evEl.innerHTML = p.events&&p.events.length
+    ? p.events.map(e=>`<div class="event-card">
+        <div class="event-date"><div class="event-day">${e.day}</div><div>${e.month}</div></div>
+        <div><div class="event-name">${e.name}</div><div class="event-time">${e.time}</div></div>
+        <div class="event-price">${e.price}</div>
+      </div>`).join('')
+    : '<div style="color:var(--text3);font-size:14px;padding:20px 0;text-align:center">Мероприятий пока нет</div>';
+
+  // Menu
+  const menuEl = document.getElementById('ptab-menu');
+  menuEl.innerHTML = p.menu
+    ? Object.entries(p.menu).map(([cat,items])=>`
+        <div class="menu-category">
+          <div class="menu-cat-title">${cat}</div>
+          ${items.map(it=>`<div class="menu-item">
+            <div><div class="menu-item-name">${it.name}</div><div class="menu-item-desc">${it.desc}</div></div>
+            <div class="menu-item-price">${it.price}</div>
+          </div>`).join('')}
+        </div>`).join('')
+    : '';
+
+  // Reviews
+  document.getElementById('profileReviews').innerHTML = p.reviews.map(r=>`
+    <div class="review-item">
+      <div class="review-author">${r.author} <span style="color:var(--accent2);font-size:11px">${'★'.repeat(r.stars)}</span></div>
+      <div class="review-text">${r.text}</div>
+    </div>`).join('');
+
+  closeMini();
+  switchTab('profile', document.querySelectorAll('.tab-btn')[1]);
+  switchProfileTab('info', document.querySelectorAll('.profile-tab')[0]);
+}
+
+function switchProfileTab(tab, btn) {
+  ['info','events','menu','reviews'].forEach(t=>{
+    document.getElementById('ptab-'+t).style.display = t===tab?'block':'none';
+  });
+  document.querySelectorAll('.profile-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ─── REVIEW ──────────────────────────────────────────────────────────────
+function openReviewModal() {
+  document.getElementById('reviewModal').classList.add('open');
+  selectedStars=0;
+  document.querySelectorAll('.star-pick').forEach(s=>s.classList.remove('selected'));
+  document.getElementById('reviewText').value='';
+}
+function closeReviewModal() { document.getElementById('reviewModal').classList.remove('open'); }
+function setStars(n) {
+  selectedStars=n;
+  document.querySelectorAll('.star-pick').forEach((s,i)=>s.classList.toggle('selected',i<n));
+}
+function submitReview() {
+  const text=document.getElementById('reviewText').value.trim();
+  if(!text||!selectedStars){alert('Пожалуйста, поставьте оценку и напишите отзыв');return;}
+  if(currentPlace){
+    currentPlace.reviews.unshift({author:'Вы',text,stars:selectedStars});
+    currentPlace.reviewCount++;
+  }
+  closeReviewModal();
+}
+
+// ─── TABS ────────────────────────────────────────────────────────────────
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active');
+  setTimeout(()=>map&&map.invalidateSize(),50);
+  setTimeout(()=>map&&map.invalidateSize(),300);
+}
+</script>
+</body>
+</html>
