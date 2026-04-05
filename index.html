@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Batumi Guide</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
@@ -447,6 +448,8 @@
       <div class="mini-stars" id="miniStars"></div>
       <div class="mini-socials" id="miniSocials"></div>
       <div class="mini-actions">
+        <button class="mini-btn-secondary" onclick="toggleFavorite()" id="favBtn" title="Избранное">♡</button>
+        <button class="mini-btn-secondary" onclick="doCheckin()" id="checkinBtn" title="Чекин">📍</button>
         <button class="mini-btn-secondary" onclick="openReviewModal()">✏️</button>
         <button class="mini-btn-primary" onclick="openProfile()">Открыть →</button>
       </div>
@@ -463,7 +466,10 @@
       <div class="profile-rating">
         <div class="profile-score" id="profileScore">4.5</div>
         <div class="profile-stars" id="profileStars"></div>
-        <div class="profile-count" id="profileCount">(128)</div>
+        <div class="profile-count" id="profileCount">(0)</div>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:10px;font-size:13px;opacity:0.85">
+        <span>📍 Чекины: <b id="checkinCount">0</b></span>
       </div>
       <div class="profile-socials" id="profileSocials"></div>
     </div>
@@ -581,8 +587,9 @@
 const tg = window.Telegram?.WebApp;
 if (tg) {
   tg.ready();
-  tg.expand(); // на весь экран
-  tg.disableVerticalSwipes(); // не закрывать свайпом вниз
+  tg.expand();
+  tg.disableVerticalSwipes();
+  initUser();
 
   // Подстраиваем цвет хедера под тему Telegram
   if (tg.headerColor !== undefined) {
@@ -1095,6 +1102,14 @@ function openMini(place, marker) {
 
   card.classList.add('open');
 
+  // обновить кнопку избранного
+  const favBtn = document.getElementById('favBtn');
+  if (favBtn) {
+    const isFav = userFavorites.has(p.id);
+    favBtn.textContent = isFav ? '♥' : '♡';
+    favBtn.style.color = isFav ? '#e74c3c' : '';
+  }
+
   // Keep card in bounds
   requestAnimationFrame(() => keepInBounds(card, pt));
 
@@ -1198,12 +1213,19 @@ function openProfile() {
         </div>`).join('')
     : '';
 
-  // Reviews
-  document.getElementById('profileReviews').innerHTML = p.reviews.map(r=>`
-    <div class="review-item">
-      <div class="review-author">${r.author} <span style="color:var(--accent2);font-size:11px">${'★'.repeat(r.stars)}</span></div>
-      <div class="review-text">${r.text}</div>
-    </div>`).join('');
+  // Reviews из Supabase
+  renderReviews(p.id);
+
+  // Rating из Supabase
+  getPlaceRating(p.id).then(r => {
+    if (r) {
+      document.getElementById('profileScore').textContent = r.avg;
+      document.getElementById('profileCount').textContent = `(${r.count})`;
+    }
+  });
+
+  // Checkin count
+  loadCheckinCount(p.id);
 
   closeMini();
   switchTab('profile', document.querySelectorAll('.tab-btn')[1]);
@@ -1218,6 +1240,85 @@ function switchProfileTab(tab, btn) {
   btn.classList.add('active');
 }
 
+// ─── SUPABASE ────────────────────────────────────────────────────────────
+const SUPA_URL = 'https://bejynnpeyfbombgrrwrz.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJlanlubnBleWZib21iZ3Jyd3J6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTIxNzgsImV4cCI6MjA5MDk4ODE3OH0.TssRq1PGqvpGb8Fb11roHSQG_o0vgESZ8sZObupzaX8';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+let currentUser = null;
+let userFavorites = new Set();
+
+async function initUser() {
+  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+  if (!tgUser) return;
+  const { data, error } = await sb.from('users').upsert({
+    telegram_id: tgUser.id,
+    username: tgUser.username || null,
+    first_name: tgUser.first_name || null,
+    last_name: tgUser.last_name || null,
+    photo_url: tgUser.photo_url || null
+  }, { onConflict: 'telegram_id' }).select().single();
+  if (data) {
+    currentUser = data;
+    await loadFavorites();
+  }
+}
+
+async function loadFavorites() {
+  if (!currentUser) return;
+  const { data } = await sb.from('favorites').select('place_id').eq('user_id', currentUser.id);
+  userFavorites = new Set((data || []).map(f => f.place_id));
+}
+
+async function toggleFavorite() {
+  if (!currentUser) { alert('Откройте приложение через Telegram'); return; }
+  if (!currentPlace) return;
+  const pid = currentPlace.id;
+  const btn = document.getElementById('favBtn');
+  if (userFavorites.has(pid)) {
+    await sb.from('favorites').delete().eq('user_id', currentUser.id).eq('place_id', pid);
+    userFavorites.delete(pid);
+    btn.textContent = '♡';
+  } else {
+    await sb.from('favorites').insert({ user_id: currentUser.id, place_id: pid });
+    userFavorites.add(pid);
+    btn.textContent = '♥';
+    btn.style.color = '#e74c3c';
+  }
+}
+
+async function doCheckin() {
+  if (!currentUser) { alert('Откройте приложение через Telegram'); return; }
+  if (!currentPlace) return;
+  await sb.from('checkins').insert({ user_id: currentUser.id, place_id: currentPlace.id });
+  const btn = document.getElementById('checkinBtn');
+  btn.textContent = '✅';
+  setTimeout(() => { btn.textContent = '📍'; }, 2000);
+  // обновить счётчик чекинов
+  loadCheckinCount(currentPlace.id);
+}
+
+async function loadCheckinCount(placeId) {
+  const { count } = await sb.from('checkins').select('*', { count: 'exact', head: true }).eq('place_id', placeId);
+  const el = document.getElementById('checkinCount');
+  if (el) el.textContent = count || 0;
+}
+
+async function loadPlaceReviews(placeId) {
+  const { data } = await sb.from('reviews')
+    .select('*, users(first_name, username)')
+    .eq('place_id', placeId)
+    .order('created_at', { ascending: false });
+  return data || [];
+}
+
+async function getPlaceRating(placeId) {
+  const { data } = await sb.from('reviews').select('rating').eq('place_id', placeId);
+  if (!data || data.length === 0) return null;
+  const avg = data.reduce((s, r) => s + r.rating, 0) / data.length;
+  return { avg: avg.toFixed(1), count: data.length };
+}
+
 // ─── REVIEW ──────────────────────────────────────────────────────────────
 function openReviewModal() {
   document.getElementById('reviewModal').classList.add('open');
@@ -1230,14 +1331,33 @@ function setStars(n) {
   selectedStars=n;
   document.querySelectorAll('.star-pick').forEach((s,i)=>s.classList.toggle('selected',i<n));
 }
-function submitReview() {
+async function submitReview() {
   const text=document.getElementById('reviewText').value.trim();
   if(!text||!selectedStars){alert('Пожалуйста, поставьте оценку и напишите отзыв');return;}
-  if(currentPlace){
-    currentPlace.reviews.unshift({author:'Вы',text,stars:selectedStars});
-    currentPlace.reviewCount++;
-  }
+  if (!currentUser) { alert('Откройте приложение через Telegram'); return; }
+  if (!currentPlace) return;
+  await sb.from('reviews').insert({
+    user_id: currentUser.id,
+    place_id: currentPlace.id,
+    rating: selectedStars,
+    text: text
+  });
   closeReviewModal();
+  // перезагрузить отзывы
+  if (document.getElementById('ptab-reviews').style.display !== 'none') {
+    renderReviews(currentPlace.id);
+  }
+}
+
+async function renderReviews(placeId) {
+  const reviews = await loadPlaceReviews(placeId);
+  const el = document.getElementById('profileReviews');
+  if (!reviews.length) { el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:10px 0">Отзывов пока нет. Будьте первым!</div>'; return; }
+  el.innerHTML = reviews.map(r => `
+    <div class="review-item">
+      <div class="review-author">${r.users?.first_name || r.users?.username || 'Пользователь'} <span style="color:var(--accent2);font-size:11px">${'★'.repeat(r.rating)}</span></div>
+      <div class="review-text">${r.text}</div>
+    </div>`).join('');
 }
 
 // ─── TABS ────────────────────────────────────────────────────────────────
