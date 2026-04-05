@@ -1249,18 +1249,41 @@ let currentUser = null;
 let userFavorites = new Set();
 
 async function initUser() {
-  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-  if (!tgUser) return;
-  const { data, error } = await sb.from('users').upsert({
-    telegram_id: tgUser.id,
-    username: tgUser.username || null,
-    first_name: tgUser.first_name || null,
-    last_name: tgUser.last_name || null,
-    photo_url: tgUser.photo_url || null
-  }, { onConflict: 'telegram_id' }).select().single();
-  if (data) {
-    currentUser = data;
-    await loadFavorites();
+  const tg = window.Telegram?.WebApp;
+  const tgUser = tg?.initDataUnsafe?.user;
+
+  let telegram_id, first_name, username;
+
+  if (tgUser) {
+    telegram_id = tgUser.id;
+    first_name = tgUser.first_name || 'Пользователь';
+    username = tgUser.username || null;
+  } else {
+    // Fallback: используем случайный ID сохранённый в localStorage
+    let anonId = localStorage.getItem('batumi_anon_id');
+    if (!anonId) {
+      anonId = 'anon_' + Math.floor(Math.random() * 9999999999);
+      localStorage.setItem('batumi_anon_id', anonId);
+    }
+    telegram_id = anonId;
+    first_name = 'Гость';
+    username = null;
+  }
+
+  try {
+    const { data } = await sb.from('users').upsert({
+      telegram_id: String(telegram_id),
+      username,
+      first_name,
+      last_name: tgUser?.last_name || null,
+      photo_url: tgUser?.photo_url || null
+    }, { onConflict: 'telegram_id' }).select().single();
+    if (data) {
+      currentUser = data;
+      await loadFavorites();
+    }
+  } catch(e) {
+    console.error('initUser error', e);
   }
 }
 
