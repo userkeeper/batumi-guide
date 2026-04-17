@@ -1301,14 +1301,7 @@ async function geocodeAddress(address) {
 // ─── OVERPASS API ────────────────────────────────────────────────────────────
 async function loadFromOverpass() {
   const query = `[out:json][timeout:25];(node["amenity"~"restaurant|cafe|bar|nightclub|casino|pub|fast_food"]["name"](41.60,41.58,41.70,41.70);way["amenity"~"restaurant|cafe|bar|nightclub|casino|pub|fast_food"]["name"](41.60,41.58,41.70,41.70););out center body;`;
-  const res = await fetch('https://overpass-api.de/api/interpreter', {
-    method: 'POST',
-    headers: {'Content-Type':'application/x-www-form-urlencoded'},
-    body: 'data=' + encodeURIComponent(query)
-  });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const data = await res.json();
-  return data.elements || [];
+  return await queryOverpass(query);
 }
 
 function osmToVenue(el) {
