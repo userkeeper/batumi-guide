@@ -1,416 +1,293 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Batumi Guide</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>MyPLY</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 
-    :root {
-      --bg: #f8f7f4;
-      --bg2: #ffffff;
-      --border: #eeece8;
-      --text: #1a1a1a;
-      --text2: #6b6b6b;
-      --text3: #a0a0a0;
-      --accent: #2d5a27;
-      --accent-light: #e8f0e6;
-      --accent2: #c8a96e;
-      --shadow: 0 2px 20px rgba(0,0,0,0.08);
-      --shadow-lg: 0 8px 40px rgba(0,0,0,0.14);
-      --radius: 16px;
-      --radius-sm: 10px;
-    }
+:root{
+  --bg:#f7f7f5;
+  --bg2:#ffffff;
+  --bg3:#f0efed;
+  --border:#e8e6e1;
+  --text:#1a1a1a;
+  --text2:#6b6b6b;
+  --text3:#a8a8a8;
+  --accent:#1a1a1a;
+  --accent-dim:#444;
+  --accent-bg:rgba(26,26,26,0.06);
+  --red:#e03030;
+  --shadow:0 2px 20px rgba(0,0,0,0.08);
+  --radius:16px;
+  --radius-sm:10px;
+  --font:'Manrope',sans-serif;
+}
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      height: 100dvh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
+body{font-family:var(--font);background:var(--bg);color:var(--text);height:100dvh;overflow:hidden;display:flex;flex-direction:column}
 
-    /* ─── HEADER ─── */
-    .header {
-      background: var(--bg2);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 20px 0;
-      flex-shrink: 0;
-      z-index: 100;
-    }
-    .header-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
-    }
-    .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
-    .logo span { color: var(--accent); }
-    .header-city { font-size: 12px; color: var(--text3); }
+/* ── HEADER ── */
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px 0;flex-shrink:0;z-index:100}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-icon{width:32px;height:32px}
+.logo-text{font-size:17px;font-weight:800;letter-spacing:-0.5px;color:var(--text)}
+.header-right{display:flex;align-items:center;gap:8px}
+.lang-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:4px 10px;font-family:var(--font);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
+.lang-btn.active{background:#1a1a1a;border-color:#1a1a1a;color:#fff}
 
-    /* ─── TABS NAV ─── */
-    .tabs-nav { display: flex; }
-    .tab-btn {
-      flex: 1; background: none; border: none;
-      padding: 10px 0; font-family: 'Inter', sans-serif;
-      font-size: 13px; font-weight: 500; color: var(--text3);
-      cursor: pointer; border-bottom: 2px solid transparent;
-      transition: all 0.2s; display: flex; align-items: center;
-      justify-content: center; gap: 6px;
-    }
-    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-    .tab-btn svg { width: 15px; height: 15px; }
+/* ── TABS NAV ── */
+.tabs-nav{display:flex}
+.tab-btn{flex:1;background:none;border:none;padding:10px 0;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px;letter-spacing:.3px;text-transform:uppercase}
+.tab-btn.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
+.tab-btn svg{width:14px;height:14px}
 
-    /* ─── CONTENT ─── */
-    .content {
-      flex: 1; overflow: hidden; position: relative;
-      display: flex; flex-direction: column;
-    }
-    .tab-panel {
-      display: none; flex: 1; overflow-y: auto; min-height: 0;
-    }
-    .tab-panel.active { display: flex; flex-direction: column; }
-    #tab-map { overflow: hidden; }
-    #map { flex: 1; width: 100%; min-height: 0; }
+/* ── CONTENT ── */
+.content{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.tab-panel{display:none;flex:1;overflow-y:auto;min-height:0;flex-direction:column}
+.tab-panel.active{display:flex}
+#tab-map{overflow:hidden;display:flex;flex-direction:column}
+#map{flex:1;width:100%;height:100%;min-height:0}
 
-    /* ─── FILTER BAR ─── */
-    .filter-bar {
-      position: absolute; top: 12px; left: 12px; right: 12px;
-      z-index: 1000; display: flex; gap: 8px;
-      overflow-x: auto; scrollbar-width: none; padding-bottom: 2px;
-    }
-    .filter-bar::-webkit-scrollbar { display: none; }
-    .filter-chip {
-      background: var(--bg2); border: 1px solid var(--border);
-      border-radius: 20px; padding: 7px 14px;
-      font-family: 'Inter', sans-serif; font-size: 12px;
-      font-weight: 500; color: var(--text2); cursor: pointer;
-      white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      transition: all 0.2s; display: flex; align-items: center; gap: 5px;
-    }
-    .filter-chip.active { background: var(--accent); color: white; border-color: var(--accent); }
+/* ── FILTER BAR ── */
+.filter-bar{position:absolute;top:12px;left:12px;right:12px;z-index:1000;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-chip{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-family:var(--font);font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;white-space:nowrap;box-shadow:0 2px 12px rgba(0,0,0,0.4);transition:all .2s;display:flex;align-items:center;gap:4px;letter-spacing:.3px}
+.filter-chip.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
 
-    /* ─── FLOATING MINI CARD (popup near marker) ─── */
-    .mini-card {
-      position: absolute;
-      z-index: 1001;
-      background: var(--bg2);
-      border-radius: 14px;
-      padding: 12px 14px 10px;
-      box-shadow: var(--shadow-lg);
-      width: 230px;
-      pointer-events: auto;
-      transform: translate(-50%, calc(-100% - 24px));
-      transition: opacity 0.2s, transform 0.2s;
-      opacity: 0;
-      display: none;
-    }
-    .mini-card.open {
-      display: block;
-      opacity: 1;
-    }
-    /* Arrow pointing down */
-    .mini-card::after {
-      content: '';
-      position: absolute;
-      bottom: -8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0; height: 0;
-      border-left: 8px solid transparent;
-      border-right: 8px solid transparent;
-      border-top: 8px solid var(--bg2);
-      filter: drop-shadow(0 2px 2px rgba(0,0,0,0.08));
-    }
-    .mini-card-top {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
-    }
-    .mini-emoji {
-      width: 40px; height: 40px;
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px; flex-shrink: 0;
-    }
-    .mini-name {
-      font-size: 14px; font-weight: 700;
-      line-height: 1.2; margin-bottom: 2px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      max-width: 140px;
-    }
-    .mini-cat { font-size: 11px; color: var(--text3); }
-    .mini-stars {
-      display: flex; align-items: center; gap: 3px; margin-bottom: 8px;
-    }
-    .mini-star { color: var(--accent2); font-size: 13px; }
-    .mini-star.empty { color: var(--border); }
-    .mini-rating-val { font-size: 12px; font-weight: 600; margin-left: 3px; }
-    .mini-rating-cnt { font-size: 11px; color: var(--text3); }
+/* ── MINI CARD ── */
+.mini-card{position:absolute;z-index:1001;background:var(--bg2);border-radius:14px;padding:14px 14px 12px;box-shadow:var(--shadow);width:240px;pointer-events:auto;transform:translate(-50%,calc(-100% - 24px));opacity:0;display:none;border:1px solid var(--border)}
+.mini-card.open{display:block;opacity:1}
+.mini-card::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:8px solid #ffffff}
+.mini-card-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.mini-emoji{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.mini-name{font-size:14px;font-weight:700;line-height:1.2;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.mini-cat{font-size:11px;color:var(--text3)}
+.mini-rating{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.mini-stars{display:flex;gap:2px}
+.mini-star{font-size:12px;color:#f0a500}
+.mini-star.empty{color:var(--border)}
+.mini-rating-val{font-size:12px;font-weight:700}
+.mini-rating-cnt{font-size:11px;color:var(--text3)}
+.mini-checkins{margin-left:auto;font-size:11px;color:var(--text2);display:flex;align-items:center;gap:3px}
+.mini-actions{display:flex;gap:6px}
+.mini-btn-open{flex:1;background:#1a1a1a;color:#fff;border:none;border-radius:8px;padding:9px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.3px}
+.mini-btn-icon{width:36px;height:36px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s;flex-shrink:0}
+.mini-btn-icon.fav-active{border-color:var(--red);color:var(--red)}
+.mini-close{position:absolute;top:8px;right:8px;width:22px;height:22px;background:var(--bg3);border:none;border-radius:50%;cursor:pointer;font-size:11px;color:var(--text3);display:flex;align-items:center;justify-content:center}
 
-    /* Social icons row */
-    .mini-socials {
-      display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
-    }
-    .social-icon {
-      width: 26px; height: 26px;
-      border-radius: 7px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; text-decoration: none;
-      transition: transform 0.15s, opacity 0.15s;
-      flex-shrink: 0;
-    }
-    .social-icon:hover { transform: scale(1.12); opacity: 0.85; }
-    .social-icon svg { width: 14px; height: 14px; }
-    .social-ig { background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
-    .social-fb { background: #1877f2; }
-    .social-tg { background: #2aabee; }
-    .social-tt { background: #010101; }
-    .social-web { background: var(--accent); }
+/* ── VENUE PROFILE ── */
+.venue-header{background:linear-gradient(180deg,#f0efed 0%,#ffffff 100%);padding:0;position:relative;overflow:hidden}
+.venue-photos{height:200px;overflow:hidden;position:relative}
+.venue-photos img{width:100%;height:100%;object-fit:cover}
+.venue-photo-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:64px;background:var(--bg3)}
+.venue-partner-badge{position:absolute;top:12px;right:12px;background:#1a1a1a;color:#fff;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;letter-spacing:.5px}
+.venue-back{position:absolute;top:12px;left:12px;background:rgba(0,0,0,0.5);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.1);color:var(--text);border-radius:8px;padding:6px 12px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px}
+.venue-info-block{padding:16px 18px 0}
+.venue-title-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.venue-name{font-size:22px;font-weight:800;letter-spacing:-.5px;flex:1}
+.venue-fav-btn{width:36px;height:36px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;margin-left:10px;transition:all .2s}
+.venue-fav-btn.active{border-color:var(--red);color:var(--red)}
+.venue-cat-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.venue-cat-badge{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--text2)}
+.venue-rating-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:14px}
+.venue-stat{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1}
+.venue-stat-val{font-size:20px;font-weight:800;color:#1a1a1a}
+.venue-stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.venue-stat-divider{width:1px;height:30px;background:var(--border)}
 
-    .mini-actions { display: flex; gap: 7px; }
-    .mini-btn-primary {
-      flex: 1; background: var(--accent); color: white;
-      border: none; border-radius: 8px; padding: 9px 0;
-      font-family: 'Inter', sans-serif; font-size: 12px;
-      font-weight: 600; cursor: pointer; transition: opacity 0.2s;
-    }
-    .mini-btn-primary:hover { opacity: 0.85; }
-    .mini-btn-secondary {
-      background: var(--bg); border: 1px solid var(--border);
-      border-radius: 8px; padding: 9px 10px;
-      font-family: 'Inter', sans-serif; font-size: 12px;
-      font-weight: 500; cursor: pointer; color: var(--text);
-    }
-    .mini-close {
-      position: absolute; top: 8px; right: 8px;
-      width: 22px; height: 22px;
-      background: var(--bg); border: none; border-radius: 50%;
-      cursor: pointer; font-size: 12px; color: var(--text3);
-      display: flex; align-items: center; justify-content: center;
-    }
+/* ── PROFILE TABS ── */
+.profile-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 18px;flex-shrink:0}
+.profile-tab{padding:12px 14px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text3);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:.3px}
+.profile-tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
 
-    /* ─── PROFILE TAB ─── */
-    .profile-hero {
-      background: linear-gradient(135deg, var(--accent) 0%, #3d7a35 100%);
-      padding: 28px 20px 24px; color: white;
-    }
-    .profile-back {
-      background: rgba(255,255,255,0.2); border: none; color: white;
-      border-radius: 8px; padding: 6px 12px;
-      font-family: 'Inter', sans-serif; font-size: 13px;
-      cursor: pointer; margin-bottom: 16px;
-      display: inline-flex; align-items: center; gap: 6px;
-    }
-    .profile-emoji { font-size: 36px; margin-bottom: 10px; }
-    .profile-name { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
-    .profile-cat { font-size: 14px; opacity: 0.8; margin-bottom: 12px; }
-    .profile-rating { display: flex; align-items: center; gap: 8px; }
-    .profile-score { font-size: 28px; font-weight: 700; }
-    .profile-stars { display: flex; gap: 3px; }
-    .profile-stars .star { font-size: 16px; color: var(--accent2); }
-    .profile-count { font-size: 13px; opacity: 0.7; }
+.profile-content{padding:16px 18px;flex:1;overflow-y:auto}
 
-    .profile-tabs {
-      display: flex; background: var(--bg2);
-      border-bottom: 1px solid var(--border); padding: 0 16px;
-    }
-    .profile-tab {
-      padding: 12px 16px; font-family: 'Inter', sans-serif;
-      font-size: 13px; font-weight: 500; color: var(--text3);
-      background: none; border: none; border-bottom: 2px solid transparent;
-      cursor: pointer; transition: all 0.2s;
-    }
-    .profile-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-    .profile-content { padding: 16px 20px; }
+/* ── INFO ROWS ── */
+.info-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.info-row:last-child{border-bottom:none}
+.info-icon{font-size:16px;flex-shrink:0;margin-top:1px;width:20px;text-align:center}
+.info-label{font-size:11px;color:var(--text3);margin-bottom:2px;text-transform:uppercase;letter-spacing:.3px}
+.info-val{font-size:14px;font-weight:500}
 
-    .section-title {
-      font-size: 14px; font-weight: 700; color: var(--text);
-      margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;
-    }
-    .info-row {
-      display: flex; align-items: flex-start; gap: 10px;
-      padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px;
-    }
-    .info-row:last-child { border-bottom: none; }
-    .info-icon { color: var(--accent); font-size: 16px; flex-shrink: 0; margin-top: 1px; }
-    .info-label { color: var(--text3); font-size: 12px; }
-    .info-val { font-weight: 500; }
+/* ── SOCIALS ── */
+.social-links{display:flex;flex-wrap:wrap;gap:8px;padding:14px 0}
+.social-link{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text);text-decoration:none;transition:all .2s}
+.social-link:hover{border-color:var(--accent);color:var(--accent)}
 
-    .event-card {
-      background: var(--bg); border-radius: var(--radius-sm);
-      padding: 14px; margin-bottom: 10px;
-      display: flex; gap: 12px; align-items: center;
-    }
-    .event-date {
-      background: var(--accent); color: white; border-radius: 8px;
-      padding: 6px 10px; text-align: center; font-size: 12px;
-      font-weight: 700; min-width: 44px;
-    }
-    .event-day { font-size: 18px; line-height: 1; }
-    .event-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
-    .event-time { font-size: 12px; color: var(--text3); }
-    .event-price { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+/* ── ACTION BUTTONS ── */
+.venue-actions{display:flex;gap:8px;padding:14px 18px;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0}
+.btn-checkin{flex:1;background:#1a1a1a;color:#fff;border:none;border-radius:var(--radius-sm);padding:13px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;letter-spacing:.3px;transition:opacity .2s}
+.btn-checkin:disabled{opacity:.4;cursor:not-allowed}
+.btn-book{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 16px;font-family:var(--font);font-size:14px;font-weight:600;color:var(--text);cursor:pointer;transition:all .2s}
+.btn-book:hover{border-color:var(--accent);color:var(--accent)}
 
-    .menu-category { margin-bottom: 20px; }
-    .menu-cat-title {
-      font-size: 13px; font-weight: 700; color: var(--text3);
-      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
-    }
-    .menu-item {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 0; border-bottom: 1px solid var(--border);
-    }
-    .menu-item:last-child { border-bottom: none; }
-    .menu-item-name { font-size: 14px; font-weight: 500; }
-    .menu-item-desc { font-size: 12px; color: var(--text3); margin-top: 2px; }
-    .menu-item-price { font-size: 14px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+/* ── REVIEWS ── */
+.reviews-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.reviews-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2)}
+.write-review-btn{background:var(--accent-bg);border:1px solid #1a1a1a;color:#1a1a1a;border-radius:8px;padding:6px 12px;font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.3px}
+.review-item{background:var(--bg3);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;border:1px solid var(--border)}
+.review-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.review-author{font-size:12px;font-weight:700}
+.review-stars{color:#f0a500;font-size:12px}
+.review-text{font-size:13px;color:var(--text2);line-height:1.5}
+.review-date{font-size:10px;color:var(--text3);margin-top:5px}
+.review-empty{color:var(--text3);font-size:13px;text-align:center;padding:24px 0}
 
-    .review-item {
-      background: var(--bg); border-radius: var(--radius-sm);
-      padding: 10px 12px; margin-bottom: 8px;
-    }
-    .review-author { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
-    .review-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
-    .reviews-label {
-      font-size: 12px; font-weight: 600; color: var(--text2);
-      margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;
-    }
+/* ── POSTS (события/акции) ── */
+.post-card{background:var(--bg3);border-radius:var(--radius);overflow:hidden;margin-bottom:10px;border:1px solid var(--border)}
+.post-card-img{height:130px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:48px;background:var(--bg2);position:relative}
+.post-card-img img{width:100%;height:100%;object-fit:cover}
+.post-type-badge{position:absolute;top:8px;left:8px;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;letter-spacing:.5px}
+.badge-event{background:var(--accent);color:#000}
+.badge-promo{background:#ff6b35;color:#fff}
+.badge-news{background:#4a9eff;color:#fff}
+.post-card-body{padding:12px 14px}
+.post-venue-name{font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
+.post-title{font-size:15px;font-weight:700;margin-bottom:5px;line-height:1.3}
+.post-meta{display:flex;gap:12px;font-size:11px;color:var(--text3)}
+.post-price{font-weight:700;color:var(--accent)}
 
-    .btn-primary {
-      flex: 1; background: var(--accent); color: white; border: none;
-      border-radius: var(--radius-sm); padding: 13px;
-      font-family: 'Inter', sans-serif; font-size: 14px;
-      font-weight: 600; cursor: pointer; transition: opacity 0.2s;
-    }
-    .btn-primary:hover { opacity: 0.85; }
-    .btn-secondary {
-      background: var(--bg); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 13px 16px;
-      font-family: 'Inter', sans-serif; font-size: 14px;
-      font-weight: 500; cursor: pointer; color: var(--text);
-    }
+/* ── AFISHA ── */
+.afisha-header{padding:18px 18px 12px;flex-shrink:0}
+.afisha-title{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+.afisha-sub{font-size:13px;color:var(--text3)}
+.afisha-filter{display:flex;gap:6px;padding:0 18px 14px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.afisha-filter::-webkit-scrollbar{display:none}
+.afisha-chip{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-family:var(--font);font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .2s}
+.afisha-chip.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.afisha-list{padding:0 18px 18px;flex:1}
 
-    /* Profile social row */
-    .profile-socials {
-      display: flex; gap: 8px; margin-top: 14px;
-    }
-    .profile-social-btn {
-      display: flex; align-items: center; gap: 6px;
-      background: rgba(255,255,255,0.2); border: none; color: white;
-      border-radius: 8px; padding: 7px 12px;
-      font-family: 'Inter', sans-serif; font-size: 12px;
-      font-weight: 500; cursor: pointer; text-decoration: none;
-    }
-    .profile-social-btn svg { width: 14px; height: 14px; }
+/* ── PROFILE (user) ── */
+.user-hero{background:linear-gradient(135deg,#f0efed,#ffffff);padding:24px 18px 18px}
+.user-avatar{width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid var(--border);margin-bottom:12px}
+.user-avatar-placeholder{width:70px;height:70px;border-radius:50%;background:var(--bg3);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:12px}
+.user-name{font-size:20px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+.user-stats{display:flex;gap:20px;margin-top:14px}
+.user-stat{text-align:center}
+.user-stat-val{font-size:20px;font-weight:800;color:#1a1a1a}
+.user-stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
 
-    /* ─── AFISHA ─── */
-    .afisha-header { padding: 20px 20px 0; margin-bottom: 16px; }
-    .afisha-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-    .afisha-sub { font-size: 14px; color: var(--text3); }
-    .afisha-section { padding: 0 20px; margin-bottom: 24px; }
-    .afisha-card {
-      background: var(--bg2); border-radius: var(--radius);
-      overflow: hidden; margin-bottom: 12px; box-shadow: var(--shadow);
-    }
-    .afisha-card-img {
-      height: 120px; background: linear-gradient(135deg, var(--accent-light), #d4e8d0);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 48px; position: relative;
-    }
-    .afisha-badge {
-      position: absolute; top: 10px; left: 10px;
-      background: var(--accent); color: white; border-radius: 6px;
-      padding: 3px 8px; font-size: 11px; font-weight: 600;
-    }
-    .afisha-card-body { padding: 14px 16px; }
-    .afisha-card-name { font-size: 16px; font-weight: 700; margin-bottom: 5px; }
-    .afisha-card-meta { font-size: 12px; color: var(--text3); display: flex; gap: 12px; margin-bottom: 10px; }
-    .afisha-card-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+.user-section{padding:16px 18px}
+.section-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.fav-venue-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.fav-venue-row:last-child{border-bottom:none}
+.fav-venue-emoji{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.fav-venue-name{font-size:14px;font-weight:600;flex:1}
+.fav-venue-cat{font-size:11px;color:var(--text3)}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px}
+.empty-icon{font-size:40px;margin-bottom:10px}
 
-    .news-item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
-    .news-item:last-child { border-bottom: none; }
-    .news-emoji {
-      width: 44px; height: 44px; background: var(--accent-light);
-      border-radius: var(--radius-sm); display: flex;
-      align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
-    }
-    .news-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-    .news-desc { font-size: 12px; color: var(--text2); line-height: 1.4; }
-    .news-date { font-size: 11px; color: var(--text3); margin-top: 5px; }
+/* ── MODALS ── */
+.modal{position:fixed;inset:0;z-index:2000;display:none;align-items:flex-end}
+.modal.open{display:flex}
+.modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)}
+.modal-sheet{position:relative;background:var(--bg2);border-radius:var(--radius) var(--radius) 0 0;padding:20px 18px;width:100%;z-index:1;border-top:1px solid var(--border);max-height:85dvh;overflow-y:auto}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.modal-title{font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:16px}
 
-    /* ─── REVIEW MODAL ─── */
-    .review-modal {
-      position: fixed; inset: 0; z-index: 2000;
-      display: none; align-items: flex-end;
-    }
-    .review-modal.open { display: flex; }
-    .review-modal-overlay {
-      position: absolute; inset: 0;
-      background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);
-    }
-    .review-modal-sheet {
-      position: relative; background: var(--bg2);
-      border-radius: var(--radius) var(--radius) 0 0;
-      padding: 20px; width: 100%; z-index: 1;
-    }
-    .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
-    .star-picker { display: flex; gap: 8px; margin-bottom: 16px; }
-    .star-pick { font-size: 28px; cursor: pointer; color: var(--border); transition: color 0.15s; }
-    .star-pick.selected, .star-pick:hover { color: var(--accent2); }
-    .review-textarea {
-      width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm);
-      padding: 12px; font-family: 'Inter', sans-serif; font-size: 14px;
-      color: var(--text); background: var(--bg); resize: none; height: 100px;
-      margin-bottom: 14px; outline: none;
-    }
-    .review-textarea:focus { border-color: var(--accent); }
+/* Review modal */
+.star-picker{display:flex;gap:8px;margin-bottom:14px}
+.star-pick{font-size:28px;cursor:pointer;color:var(--border);transition:color .15s;line-height:1}
+.star-pick.selected{color:var(--accent)}
+.review-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;color:var(--text);font-family:var(--font);font-size:14px;resize:none;height:100px;outline:none;margin-bottom:14px;transition:border-color .2s}
+.review-textarea:focus{border-color:var(--accent)}
 
-    @keyframes spin { to { transform: rotate(360deg); } }
+/* Booking modal */
+.form-group{margin-bottom:12px}
+.form-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px;display:block}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--accent)}
+.guests-row{display:flex;align-items:center;gap:12px}
+.guests-btn{width:36px;height:36px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:300}
+.guests-val{font-size:16px;font-weight:700;min-width:24px;text-align:center}
 
-    /* Leaflet overrides */
-    .leaflet-popup { display: none !important; }
-    .leaflet-control-zoom {
-      border: none !important; box-shadow: var(--shadow) !important;
-    }
-    .leaflet-control-zoom a {
-      border-radius: 8px !important; border: none !important;
-      color: var(--text) !important; font-size: 16px !important;
-    }
-    .leaflet-control-attribution { display: none; }
-  </style>
+/* Checkin modal */
+.checkin-modal-icon{font-size:48px;text-align:center;margin-bottom:12px}
+.checkin-status{text-align:center;font-size:14px;color:var(--text2);margin-bottom:16px;line-height:1.5}
+
+/* ── BUTTONS ── */
+.btn-primary{width:100%;background:#1a1a1a;color:#fff;border:none;border-radius:var(--radius-sm);padding:14px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.3px;transition:opacity .2s}
+.btn-primary:hover{opacity:.9}
+.btn-secondary{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-family:var(--font);font-size:14px;font-weight:600;color:var(--text);cursor:pointer;margin-top:8px;transition:all .2s}
+
+/* ── MAP LOADER ── */
+.map-loader{position:absolute;inset:0;background:#f7f7f5;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.map-loader-logo{font-size:48px}
+.map-loader-text{font-size:14px;color:var(--text3);font-weight:600}
+.map-loader-spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:#1a1a1a;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── STATUS TOAST ── */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:3000;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;box-shadow:var(--shadow)}
+.toast.show{opacity:1}
+.toast.success{border-color:var(--accent);color:var(--accent)}
+.toast.error{border-color:var(--red);color:var(--red)}
+
+/* ── PARTNER PANEL ── */
+.partner-section{padding:16px 18px;border-bottom:1px solid var(--border)}
+.partner-btn{display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;cursor:pointer;transition:all .2s;width:100%;margin-bottom:8px}
+.partner-btn:last-child{margin-bottom:0}
+.partner-btn-left{display:flex;align-items:center;gap:10px}
+.partner-btn-icon{font-size:20px}
+.partner-btn-title{font-size:14px;font-weight:600}
+.partner-btn-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.partner-btn-arrow{color:var(--text3);font-size:16px}
+
+/* ── LEAFLET OVERRIDES ── */
+.leaflet-container{background:#e8e6e1}
+.leaflet-tile{filter:saturate(.85)}
+.leaflet-control-zoom a{background:var(--bg2)!important;color:var(--text)!important;border-color:var(--border)!important;box-shadow:var(--shadow)!important}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:0;height:0}
+
+/* ── ADMIN PIN MODE ── */
+.pin-mode-banner{position:absolute;top:56px;left:0;right:0;z-index:1002;background:#1a1a1a;color:#fff;padding:10px 16px;font-size:12px;font-weight:600;display:none;align-items:center;justify-content:space-between}
+.pin-mode-banner.active{display:flex}
+.pin-mode-banner span{color:#c8ff00}
+.pin-exit-btn{background:var(--red);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer}
+.admin-fab{position:absolute;bottom:60px;right:16px;z-index:1001;width:40px;height:40px;background:#1a1a1a;border:2px solid var(--border);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+</style>
 </head>
 <body>
 
 <!-- HEADER -->
 <div class="header">
   <div class="header-top">
-    <div class="logo">Batumi<span>.</span>Guide</div>
-    <div class="header-city">🇬🇪 Батуми, Грузия</div>
+    <div class="logo">
+      <img src="data:image/png;base64,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" class="logo-icon" style="width:32px;height:32px;border-radius:8px;object-fit:cover"/>
+      <span class="logo-text">MyPLY</span>
+    </div>
+    <div class="header-right">
+      <button class="lang-btn active" onclick="setLang('ru')" id="lang-ru">RU</button>
+      <button class="lang-btn" onclick="setLang('en')" id="lang-en">EN</button>
+      <button class="lang-btn" onclick="setLang('ka')" id="lang-ka">KA</button>
+    </div>
   </div>
   <div class="tabs-nav">
-    <button class="tab-btn active" onclick="switchTab('map',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      Карта
+    <button class="tab-btn active" onclick="switchTab('map',this)" id="tab-btn-map">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+      <span data-i18n="tab_map">Карта</span>
     </button>
-    <button class="tab-btn" onclick="switchTab('profile',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-      Заведение
-    </button>
-    <button class="tab-btn" onclick="switchTab('afisha',this)">
+    <button class="tab-btn" onclick="switchTab('afisha',this)" id="tab-btn-afisha">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      Афиша
+      <span data-i18n="tab_afisha">Афиша</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('profile',this)" id="tab-btn-profile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span data-i18n="tab_profile">Профиль</span>
     </button>
   </div>
 </div>
@@ -420,156 +297,158 @@
 
   <!-- MAP TAB -->
   <div class="tab-panel active" id="tab-map">
-    <div class="filter-bar">
-      <button class="filter-chip active" onclick="filterPlaces('all',this)">🌍 Все</button>
-      <button class="filter-chip" onclick="filterPlaces('restaurant',this)">🍽️ Рестораны</button>
-      <button class="filter-chip" onclick="filterPlaces('cafe',this)">☕ Кофейни</button>
-      <button class="filter-chip" onclick="filterPlaces('club',this)">🎵 Клубы</button>
-      <button class="filter-chip" onclick="filterPlaces('casino',this)">🎰 Казино</button>
-      <button class="filter-chip" onclick="filterPlaces('bar',this)">🍸 Бары</button>
+    <div class="filter-bar" id="filterBar">
+      <button class="filter-chip active" onclick="filterVenues('all',this)">🌍 <span data-i18n="filter_all">Все</span></button>
+      <button class="filter-chip" onclick="filterVenues('restaurant',this)">🍽️ <span data-i18n="cat_restaurant">Рестораны</span></button>
+      <button class="filter-chip" onclick="filterVenues('cafe',this)">☕ <span data-i18n="cat_cafe">Кофейни</span></button>
+      <button class="filter-chip" onclick="filterVenues('bar',this)">🍸 <span data-i18n="cat_bar">Бары</span></button>
+      <button class="filter-chip" onclick="filterVenues('club',this)">🎵 <span data-i18n="cat_club">Клубы</span></button>
+      <button class="filter-chip" onclick="filterVenues('casino',this)">🎰 <span data-i18n="cat_casino">Казино</span></button>
+      <button class="filter-chip" onclick="filterVenues('fastfood',this)">🍔 <span data-i18n="cat_fastfood">Фастфуд</span></button>
     </div>
 
+    <div class="pin-mode-banner" id="pinBanner">
+      <div>📍 Нажми на карту чтобы поставить метку для: <span id="pinVenueName"></span></div>
+      <button class="pin-exit-btn" onclick="exitPinMode()">Отмена</button>
+    </div>
+    <button class="admin-fab" id="adminFab" onclick="toggleAdminPanel()" title="Редактор координат">📐</button>
+    <div id="mapLoader" class="map-loader">
+      <div class="map-loader-logo">📍</div>
+      <div class="map-loader-spinner"></div>
+      <div class="map-loader-text" data-i18n="loading_map">Загружаем карту…</div>
+    </div>
     <div id="map"></div>
-    <div id="mapLoader" style="position:absolute;inset:0;background:rgba(248,247,244,0.85);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:none;">
-      <div style="width:36px;height:36px;border:3px solid #e0e0e0;border-top-color:#2d5a27;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-      <div style="font-size:13px;color:#6b6b6b;font-weight:500;">Загружаем карту…</div>
-    </div>
 
-    <!-- Mini floating card -->
+    <!-- MINI CARD -->
     <div class="mini-card" id="miniCard">
       <button class="mini-close" onclick="closeMini()">✕</button>
       <div class="mini-card-top">
-        <div class="mini-emoji" id="miniEmoji">🍽️</div>
+        <div class="mini-emoji" id="miniEmoji"></div>
         <div>
-          <div class="mini-name" id="miniName">Название</div>
-          <div class="mini-cat" id="miniCat">Категория</div>
+          <div class="mini-name" id="miniName"></div>
+          <div class="mini-cat" id="miniCat"></div>
         </div>
       </div>
-      <div class="mini-stars" id="miniStars"></div>
-      <div class="mini-socials" id="miniSocials"></div>
+      <div class="mini-rating">
+        <div class="mini-stars" id="miniStars"></div>
+        <span class="mini-rating-val" id="miniRatingVal"></span>
+        <span class="mini-rating-cnt" id="miniRatingCnt"></span>
+        <div class="mini-checkins" id="miniCheckins">📍 <span id="miniCheckinCount">0</span></div>
+      </div>
       <div class="mini-actions">
-        <button class="mini-btn-secondary" onclick="toggleFavorite()" id="favBtn" title="Избранное">♡</button>
-        <button class="mini-btn-secondary" onclick="doCheckin()" id="checkinBtn" title="Чекин">📍</button>
-        <button class="mini-btn-secondary" onclick="openReviewModal()">✏️</button>
-        <button class="mini-btn-primary" onclick="openProfile()">Открыть →</button>
+        <button class="mini-btn-icon" id="miniFavBtn" onclick="toggleFavorite()">♡</button>
+        <button class="mini-btn-open" onclick="openVenueProfile()" data-i18n="btn_open">Открыть →</button>
       </div>
     </div>
   </div>
 
-  <!-- PROFILE TAB -->
-  <div class="tab-panel" id="tab-profile">
-    <div class="profile-hero">
-      <button class="profile-back" onclick="switchTab('map',document.querySelectorAll('.tab-btn')[0])">← На карту</button>
-      <div class="profile-emoji" id="profileEmoji">🍽️</div>
-      <div class="profile-name" id="profileName">Название</div>
-      <div class="profile-cat" id="profileCat">Категория</div>
-      <div class="profile-rating">
-        <div class="profile-score" id="profileScore">4.5</div>
-        <div class="profile-stars" id="profileStars"></div>
-        <div class="profile-count" id="profileCount">(0)</div>
+  <!-- VENUE PROFILE TAB -->
+  <div class="tab-panel" id="tab-venue">
+    <div class="venue-header">
+      <div class="venue-photos" id="venuePhotos">
+        <div class="venue-photo-placeholder" id="venuePhotoPlaceholder"></div>
       </div>
-      <div style="display:flex;gap:16px;margin-top:10px;font-size:13px;opacity:0.85">
-        <span>📍 Чекины: <b id="checkinCount">0</b></span>
+      <button class="venue-back" onclick="backToMap()">← <span data-i18n="back">Назад</span></button>
+      <div class="venue-partner-badge" id="venuePartnerBadge" style="display:none" data-i18n="partner">Партнёр</div>
+      <div class="venue-info-block">
+        <div class="venue-title-row">
+          <div class="venue-name" id="venueName"></div>
+          <button class="venue-fav-btn" id="venueFavBtn" onclick="toggleFavorite()">♡</button>
+        </div>
+        <div class="venue-cat-row">
+          <div class="venue-cat-badge" id="venueCat"></div>
+        </div>
+        <div class="venue-rating-row">
+          <div class="venue-stat">
+            <div class="venue-stat-val" id="venueRatingVal">—</div>
+            <div class="venue-stat-label" data-i18n="rating">Рейтинг</div>
+          </div>
+          <div class="venue-stat-divider"></div>
+          <div class="venue-stat">
+            <div class="venue-stat-val" id="venueReviewCount">0</div>
+            <div class="venue-stat-label" data-i18n="reviews">Отзывы</div>
+          </div>
+          <div class="venue-stat-divider"></div>
+          <div class="venue-stat">
+            <div class="venue-stat-val" id="venueCheckinCount">0</div>
+            <div class="venue-stat-label" data-i18n="checkins">Чекины</div>
+          </div>
+        </div>
       </div>
-      <div class="profile-socials" id="profileSocials"></div>
     </div>
 
     <div class="profile-tabs">
-      <button class="profile-tab active" onclick="switchProfileTab('info',this)">Инфо</button>
-      <button class="profile-tab" onclick="switchProfileTab('events',this)">События</button>
-      <button class="profile-tab" onclick="switchProfileTab('menu',this)">Меню</button>
-      <button class="profile-tab" onclick="switchProfileTab('reviews',this)">Отзывы</button>
+      <button class="profile-tab active" onclick="switchProfileTab('info',this)" data-i18n="ptab_info">Инфо</button>
+      <button class="profile-tab" onclick="switchProfileTab('reviews',this)" data-i18n="ptab_reviews">Отзывы</button>
+      <button class="profile-tab" onclick="switchProfileTab('events',this)" data-i18n="ptab_events">События</button>
     </div>
 
-    <div class="profile-content">
-      <div id="ptab-info"></div>
-      <div id="ptab-events" style="display:none"></div>
-      <div id="ptab-menu" style="display:none"></div>
-      <div id="ptab-reviews" style="display:none">
-        <div id="profileReviews"></div>
-        <div style="margin-top:14px">
-          <button class="btn-primary" onclick="openReviewModal()" style="width:100%">✏️ Написать отзыв</button>
-        </div>
-      </div>
+    <div class="profile-content" id="profileContent"></div>
+
+    <div class="venue-actions">
+      <button class="btn-checkin" id="checkinBtn" onclick="openCheckinModal()">
+        📍 <span data-i18n="checkin">Чекин</span>
+      </button>
+      <button class="btn-book" id="bookBtn" onclick="openBookingModal()" style="display:none" data-i18n="book">Забронировать</button>
     </div>
   </div>
 
   <!-- AFISHA TAB -->
   <div class="tab-panel" id="tab-afisha">
     <div class="afisha-header">
-      <div class="afisha-title">Афиша</div>
-      <div class="afisha-sub">Апрель 2026 · Батуми</div>
+      <div class="afisha-title" data-i18n="afisha_title">Афиша</div>
+      <div class="afisha-sub" data-i18n="afisha_sub">Батуми · события, акции, новости</div>
     </div>
-    <div class="afisha-section">
-      <div class="section-title">🔥 Ближайшие события</div>
-      <div class="afisha-card">
-        <div class="afisha-card-img">🎶<div class="afisha-badge">Концерт</div></div>
-        <div class="afisha-card-body">
-          <div class="afisha-card-name">Jazz Night на бульваре</div>
-          <div class="afisha-card-meta"><span>📅 5 апр</span><span>🕗 21:00</span><span>📍 Chacha Time</span></div>
-          <div class="afisha-card-desc">Живой джаз под открытым небом, вход свободный.</div>
-        </div>
-      </div>
-      <div class="afisha-card">
-        <div class="afisha-card-img" style="background:linear-gradient(135deg,#fde8e8,#ffd4d4)">🎪<div class="afisha-badge" style="background:#c0392b">Вечеринка</div></div>
-        <div class="afisha-card-body">
-          <div class="afisha-card-name">Techno Night · Moon Club</div>
-          <div class="afisha-card-meta"><span>📅 6 апр</span><span>🕗 23:00</span><span>💳 30 ₾</span></div>
-          <div class="afisha-card-desc">Техно-резидент вечеринка в главном клубе Батуми.</div>
-        </div>
-      </div>
-      <div class="afisha-card">
-        <div class="afisha-card-img" style="background:linear-gradient(135deg,#e8f0ff,#d0deff)">🍷<div class="afisha-badge" style="background:#6366f1">Дегустация</div></div>
-        <div class="afisha-card-body">
-          <div class="afisha-card-name">Грузинское вино: мастер-класс</div>
-          <div class="afisha-card-meta"><span>📅 8 апр</span><span>🕖 18:00</span><span>💳 45 ₾</span></div>
-          <div class="afisha-card-desc">8 сортов натурального грузинского вина с сомелье.</div>
-        </div>
-      </div>
-      <div class="afisha-card">
-        <div class="afisha-card-img" style="background:linear-gradient(135deg,#fff8e1,#ffe8a0)">🎰<div class="afisha-badge" style="background:#f39c12">Турнир</div></div>
-        <div class="afisha-card-body">
-          <div class="afisha-card-name">Poker Tournament · Eclipse Casino</div>
-          <div class="afisha-card-meta"><span>📅 12 апр</span><span>🕖 19:00</span><span>💳 200 ₾ buy-in</span></div>
-          <div class="afisha-card-desc">Открытый покерный турнир, призовой фонд от 5000 ₾.</div>
-        </div>
-      </div>
+    <div class="afisha-filter">
+      <button class="afisha-chip active" onclick="filterAfisha('all',this)" data-i18n="filter_all">Все</button>
+      <button class="afisha-chip" onclick="filterAfisha('event',this)" data-i18n="type_event">События</button>
+      <button class="afisha-chip" onclick="filterAfisha('promo',this)" data-i18n="type_promo">Акции</button>
+      <button class="afisha-chip" onclick="filterAfisha('news',this)" data-i18n="type_news">Новости</button>
     </div>
-    <div class="afisha-section">
-      <div class="section-title">📰 Новости</div>
-      <div class="news-item">
-        <div class="news-emoji">🏖️</div>
-        <div>
-          <div class="news-name">Открытие пляжного сезона — 15 мая</div>
-          <div class="news-desc">Мэрия Батуми объявила официальное открытие с концертом на бульваре.</div>
-          <div class="news-date">2 апреля 2026</div>
-        </div>
-      </div>
-      <div class="news-item">
-        <div class="news-emoji">🎪</div>
-        <div>
-          <div class="news-name">Batumi Art Week 2026</div>
-          <div class="news-desc">Городской фестиваль современного искусства пройдёт с 18 по 25 апреля.</div>
-          <div class="news-date">30 марта 2026</div>
-        </div>
-      </div>
-      <div class="news-item">
-        <div class="news-emoji">☕</div>
-        <div>
-          <div class="news-name">Kava Lova — лучшая кофейня по версии читателей</div>
-          <div class="news-desc">Батумская specialty-кофейня заняла 1-е место в народном голосовании 2026.</div>
-          <div class="news-date">28 марта 2026</div>
-        </div>
-      </div>
+    <div class="afisha-list" id="afishaList">
+      <div class="empty-state"><div class="empty-icon">📅</div><div data-i18n="loading">Загрузка…</div></div>
     </div>
   </div>
-</div>
+
+  <!-- USER PROFILE TAB -->
+  <div class="tab-panel" id="tab-profile">
+    <div class="user-hero">
+      <div class="user-avatar-placeholder" id="userAvatar">👤</div>
+      <div class="user-name" id="userName">—</div>
+      <div style="font-size:12px;color:var(--text3)" id="userHandle"></div>
+      <div class="user-stats">
+        <div class="user-stat">
+          <div class="user-stat-val" id="userCheckinCount">0</div>
+          <div class="user-stat-label" data-i18n="checkins">Чекины</div>
+        </div>
+        <div class="user-stat">
+          <div class="user-stat-val" id="userReviewCount">0</div>
+          <div class="user-stat-label" data-i18n="reviews">Отзывы</div>
+        </div>
+        <div class="user-stat">
+          <div class="user-stat-val" id="userFavCount">0</div>
+          <div class="user-stat-label" data-i18n="favorites">Избранное</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="user-section">
+      <div class="section-label" data-i18n="favorites">Избранное</div>
+      <div id="favList"><div class="empty-state"><div class="empty-icon">♡</div><div data-i18n="no_favorites">Нет избранных заведений</div></div></div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <!-- REVIEW MODAL -->
-<div class="review-modal" id="reviewModal">
-  <div class="review-modal-overlay" onclick="closeReviewModal()"></div>
-  <div class="review-modal-sheet">
-    <div class="modal-title">Написать отзыв</div>
+<div class="modal" id="reviewModal">
+  <div class="modal-overlay" onclick="closeModal('reviewModal')"></div>
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" data-i18n="write_review">Написать отзыв</div>
     <div class="star-picker" id="starPicker">
       <span class="star-pick" onclick="setStars(1)">★</span>
       <span class="star-pick" onclick="setStars(2)">★</span>
@@ -577,566 +456,1001 @@
       <span class="star-pick" onclick="setStars(4)">★</span>
       <span class="star-pick" onclick="setStars(5)">★</span>
     </div>
-    <textarea class="review-textarea" id="reviewText" placeholder="Расскажите о своём впечатлении..."></textarea>
-    <button class="btn-primary" onclick="submitReview()" style="width:100%">Опубликовать</button>
+    <textarea class="review-textarea" id="reviewText" placeholder="Расскажите о впечатлении…"></textarea>
+    <button class="btn-primary" onclick="submitReview()" data-i18n="publish">Опубликовать</button>
+  </div>
+</div>
+
+<!-- CHECKIN MODAL -->
+<div class="modal" id="checkinModal">
+  <div class="modal-overlay" onclick="closeModal('checkinModal')"></div>
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="checkin-modal-icon">📍</div>
+    <div class="modal-title" style="text-align:center" id="checkinModalTitle"></div>
+    <div class="checkin-status" id="checkinStatus" data-i18n="checkin_locating">Определяем геолокацию…</div>
+    <button class="btn-primary" id="checkinConfirmBtn" style="display:none" onclick="confirmCheckin()" data-i18n="checkin_confirm">Подтвердить чекин</button>
+    <button class="btn-secondary" onclick="closeModal('checkinModal')" data-i18n="cancel">Отмена</button>
+  </div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal" id="bookingModal">
+  <div class="modal-overlay" onclick="closeModal('bookingModal')"></div>
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" data-i18n="book_table">Забронировать стол</div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="book_name">Ваше имя</label>
+      <input class="form-input" id="bookName" type="text"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="book_phone">Телефон</label>
+      <input class="form-input" id="bookPhone" type="tel"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="book_date">Дата и время</label>
+      <input class="form-input" id="bookDate" type="datetime-local"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="book_guests">Гостей</label>
+      <div class="guests-row">
+        <button class="guests-btn" onclick="changeGuests(-1)">−</button>
+        <div class="guests-val" id="guestsVal">2</div>
+        <button class="guests-btn" onclick="changeGuests(1)">+</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="book_comment">Комментарий</label>
+      <input class="form-input" id="bookComment" type="text" placeholder="Пожелания, повод…"/>
+    </div>
+    <button class="btn-primary" onclick="submitBooking()" data-i18n="book_submit">Отправить бронь</button>
   </div>
 </div>
 
 <script>
-// ─── TELEGRAM MINI APP INIT ──────────────────────────────────────────────
-const tg = window.Telegram?.WebApp;
-if (tg) {
-  tg.ready();
-  tg.expand();
-  tg.disableVerticalSwipes();
-  initUser();
+// ═══════════════════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════════════════
+const SUPA_URL = 'https://bejynnpeyfbombgrrwrz.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJlanlubnBleWZib21iZ3Jyd3J6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTIxNzgsImV4cCI6MjA5MDk4ODE3OH0.TssRq1PGqvpGb8Fb11roHSQG_o0vgESZ8sZObupzaX8';
+const GOOGLE_API_KEY = 'YOUR_GOOGLE_PLACES_API_KEY'; // ← вставить
+const CHECKIN_RADIUS_M = 150; // метров
 
-  // Подстраиваем цвет хедера под тему Telegram
-  if (tg.headerColor !== undefined) {
-    tg.setHeaderColor('#ffffff');
-    tg.setBackgroundColor('#f8f7f4');
-  }
-}
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-// ─── SVG ICONS ───────────────────────────────────────────────────────────
-const SVG = {
-  ig: `<svg viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>`,
-  fb: `<svg viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`,
-  tg: `<svg viewBox="0 0 24 24" fill="white"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>`,
-  tt: `<svg viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.79 1.53V6.77a4.85 4.85 0 01-1.02-.08z"/></svg>`,
-  web: `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>`
+// ═══════════════════════════════════════════════════════════
+//  I18N
+// ═══════════════════════════════════════════════════════════
+const T = {
+  ru:{tab_map:'Карта',tab_afisha:'Афиша',tab_profile:'Профиль',filter_all:'Все',cat_restaurant:'Рестораны',cat_cafe:'Кофейни',cat_bar:'Бары',cat_club:'Клубы',cat_casino:'Казино',cat_fastfood:'Фастфуд',loading_map:'Загружаем карту…',btn_open:'Открыть →',back:'Назад',partner:'Партнёр',rating:'Рейтинг',reviews:'Отзывы',checkins:'Чекины',ptab_info:'Инфо',ptab_reviews:'Отзывы',ptab_events:'События',checkin:'Чекин',book:'Забронировать',afisha_title:'Афиша',afisha_sub:'Батуми · события, акции, новости',type_event:'События',type_promo:'Акции',type_news:'Новости',write_review:'Написать отзыв',publish:'Опубликовать',checkin_locating:'Определяем геолокацию…',checkin_confirm:'Подтвердить чекин',cancel:'Отмена',book_table:'Забронировать стол',book_name:'Ваше имя',book_phone:'Телефон',book_date:'Дата и время',book_guests:'Гостей',book_comment:'Комментарий',book_submit:'Отправить бронь',favorites:'Избранное',no_favorites:'Нет избранных заведений',loading:'Загрузка…'},
+  en:{tab_map:'Map',tab_afisha:'Events',tab_profile:'Profile',filter_all:'All',cat_restaurant:'Restaurants',cat_cafe:'Cafes',cat_bar:'Bars',cat_club:'Clubs',cat_casino:'Casinos',cat_fastfood:'Fast Food',loading_map:'Loading map…',btn_open:'Open →',back:'Back',partner:'Partner',rating:'Rating',reviews:'Reviews',checkins:'Check-ins',ptab_info:'Info',ptab_reviews:'Reviews',ptab_events:'Events',checkin:'Check-in',book:'Book',afisha_title:'Events',afisha_sub:'Batumi · events, promos, news',type_event:'Events',type_promo:'Promos',type_news:'News',write_review:'Write a review',publish:'Publish',checkin_locating:'Getting your location…',checkin_confirm:'Confirm check-in',cancel:'Cancel',book_table:'Book a table',book_name:'Your name',book_phone:'Phone',book_date:'Date & time',book_guests:'Guests',book_comment:'Comment',book_submit:'Send booking',favorites:'Favorites',no_favorites:'No saved venues',loading:'Loading…'},
+  ka:{tab_map:'რუქა',tab_afisha:'აფიშა',tab_profile:'პროფილი',filter_all:'ყველა',cat_restaurant:'რესტორნები',cat_cafe:'კაფეები',cat_bar:'ბარები',cat_club:'კლუბები',cat_casino:'კაზინოები',cat_fastfood:'ფასტფუდი',loading_map:'რუქა იტვირთება…',btn_open:'გახსნა →',back:'უკან',partner:'პარტნიორი',rating:'რეიტინგი',reviews:'მიმოხილვები',checkins:'ჩეკინები',ptab_info:'ინფო',ptab_reviews:'მიმოხილვები',ptab_events:'ივენთები',checkin:'ჩეკინი',book:'დაჯავშნა',afisha_title:'აფიშა',afisha_sub:'ბათუმი · ღონისძიებები, აქციები, სიახლეები',type_event:'ღონისძიებები',type_promo:'აქციები',type_news:'სიახლეები',write_review:'მიმოხილვის დაწერა',publish:'გამოქვეყნება',checkin_locating:'გეოლოკაციის განსაზღვრა…',checkin_confirm:'ჩეკინის დადასტურება',cancel:'გაუქმება',book_table:'მაგიდის დაჯავშნა',book_name:'თქვენი სახელი',book_phone:'ტელეფონი',book_date:'თარიღი და დრო',book_guests:'სტუმრები',book_comment:'კომენტარი',book_submit:'ჯავშნის გაგზავნა',favorites:'რჩეულები',no_favorites:'შენახული ადგილები არ არის',loading:'იტვირთება…'}
 };
 
-function socialIcon(type, url, label) {
-  const cls = { ig:'social-ig', fb:'social-fb', tg:'social-tg', tt:'social-tt', web:'social-web' }[type] || 'social-web';
-  return `<a href="${url}" target="_blank" class="social-icon ${cls}" title="${label}">${SVG[type]}</a>`;
+let currentLang = 'ru';
+function setLang(l) {
+  currentLang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('lang-'+l)?.classList.add('active');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (T[l][key]) el.textContent = T[l][key];
+  });
+  if (currentUser) updateUserProfile();
+}
+function t(key) { return T[currentLang][key] || T.ru[key] || key; }
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let map, clusterGroup, markers = [], allVenues = [], currentVenue = null;
+let currentUser = null, userFavorites = new Set();
+let selectedStars = 0, guestsCount = 2;
+let userLat = null, userLng = null;
+let checkinVenueData = null; // геоданные для подтверждения
+let afishaFilter = 'all', allPosts = [];
+
+// ═══════════════════════════════════════════════════════════
+//  CATEGORY CONFIG
+// ═══════════════════════════════════════════════════════════
+const CAT = {
+  restaurant:{ emoji:'🍽️', color:'#2d7a3a', bg:'rgba(45,122,58,.15)',  label:{ru:'Ресторан',en:'Restaurant',ka:'რესტორანი'} },
+  cafe:      { emoji:'☕',  color:'#8b5e3c', bg:'rgba(139,94,60,.15)', label:{ru:'Кофейня',en:'Cafe',ka:'კაფე'} },
+  bar:       { emoji:'🍸',  color:'#b03060', bg:'rgba(176,48,96,.15)', label:{ru:'Бар',en:'Bar',ka:'ბარი'} },
+  club:      { emoji:'🎵',  color:'#6b35a8', bg:'rgba(107,53,168,.15)',label:{ru:'Клуб',en:'Club',ka:'კლუბი'} },
+  casino:    { emoji:'🎰',  color:'#c8a000', bg:'rgba(200,160,0,.15)', label:{ru:'Казино',en:'Casino',ka:'კაზინო'} },
+  fastfood:  { emoji:'🍔',  color:'#d45f00', bg:'rgba(212,95,0,.15)',  label:{ru:'Фастфуд',en:'Fast Food',ka:'ფასტფუდი'} },
+};
+function catLabel(category) {
+  return CAT[category]?.label?.[currentLang] || category;
 }
 
-// ─── PLACES (динамически из Overpass, ниже — fallback) ───────────────────
-let places = [];
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+const tgApp = window.Telegram?.WebApp;
+if (tgApp) { tgApp.ready(); tgApp.expand(); tgApp.disableVerticalSwipes(); }
 
-// ─── FALLBACK: кураторский список на случай офлайн / ошибки сети ─────────
-const FALLBACK_PLACES = [
-  // ── РЕСТОРАНЫ ──
-  {
-    id:1, name:"Iveria Beach Restaurant", emoji:"🌊", category:"restaurant",
-    lat:41.6475, lng:41.6279,
-    rating:4.7, reviewCount:512,
-    address:"Площадь Чудес, Приморский бульвар", hours:"12:00 – 23:00", price:"$$$",
-    tags:["Морепродукты","На бульваре","Живая музыка"],
-    phone:"+995 422 27-55-55",
-    social:{ ig:"https://www.instagram.com/iveria_georgian_rest/" },
-    reviews:[
-      {author:"Алексей М.", text:"Лучший вид на море в городе. Осьминог гриль — шедевр!", stars:5},
-      {author:"Юля С.", text:"Романтическое место, подача блюд на высоте.", stars:5}
-    ],
-    events:[{day:"9",month:"АПР",name:"Seafood Night",time:"19:00 – 22:00",price:"Вход свободный"}],
-    menu:{"Морепродукты":[
-      {name:"Мидии в белом вине",desc:"400г, чесночный соус, тосты",price:"32 ₾"},
-      {name:"Осьминог гриль",desc:"С оливковым маслом и лимоном",price:"55 ₾"}
-    ],"Основные":[
-      {name:"Хачапури по-аджарски",desc:"Классический, с яйцом",price:"16 ₾"}
-    ]}
-  },
-  {
-    id:2, name:"Ocean Market Cafe", emoji:"🐟", category:"restaurant",
-    lat:41.6488, lng:41.6370,
-    rating:4.6, reviewCount:387,
-    address:"ул. Горгиладзе 39", hours:"10:00 – 22:00", price:"$$",
-    tags:["Свежая рыба","Морепродукты","Рынок-кафе"],
-    phone:"+995 555 10-20-30",
-    social:{ ig:"https://www.instagram.com/ocean.batumi/", fb:"https://www.facebook.com" },
-    reviews:[
-      {author:"Дима В.", text:"Выбираешь рыбу сам — готовят при тебе. Свежее не бывает!",stars:5},
-      {author:"Катя Р.", text:"Невероятная форель и дорадо, цены разумные.",stars:4}
-    ],
-    events:[],
-    menu:{"Рыба на гриле":[
-      {name:"Форель",desc:"Целая рыба на гриле, 400-500г",price:"38 ₾"},
-      {name:"Дорадо",desc:"С лимоном и зеленью",price:"44 ₾"}
-    ]}
-  },
-  {
-    id:3, name:"Baraka Restaurant", emoji:"🫕", category:"restaurant",
-    lat:41.6455, lng:41.6352,
-    rating:4.3, reviewCount:218,
-    address:"ул. Чавчавадзе 39", hours:"12:00 – 23:00", price:"$$",
-    tags:["Турецкая кухня","Халяль","Мангал"],
-    phone:"+995 422 27-00-01",
-    social:{ ig:"https://www.instagram.com/barakaturkmutfagi/", fb:"https://www.facebook.com/BatumBarakaRestaurant/" },
-    reviews:[
-      {author:"Рустам Н.", text:"Отличный шашлык и восточные закуски, хороший сервис.",stars:4},
-      {author:"Мария Т.", text:"Хумус и пита — просто объедение.",stars:5}
-    ],
-    events:[],
-    menu:{"Мангал":[
-      {name:"Адана кебаб",desc:"Фарш из баранины на углях",price:"26 ₾"},
-      {name:"Лула-кебаб",desc:"Говядина, специи",price:"22 ₾"}
-    ],"Закуски":[
-      {name:"Хумус",desc:"С оливковым маслом и паприкой",price:"12 ₾"}
-    ]}
-  },
-
-  // ── КОФЕЙНИ ──
-  {
-    id:4, name:"Kava Lova", emoji:"☕", category:"cafe",
-    lat:41.6526, lng:41.6384,
-    rating:4.9, reviewCount:841,
-    address:"ул. Зубалашвили 31", hours:"08:00 – 21:00", price:"$",
-    tags:["Specialty coffee","Завтраки","Топ-1 Батуми"],
-    phone:"+995 555 12-34-56",
-    social:{ ig:"https://www.instagram.com/kava.lova.ge/", tg:"https://t.me" },
-    reviews:[
-      {author:"Настя Л.", text:"Лучший specialty-кофе в городе. Сюда приходят настоящие ценители.",stars:5},
-      {author:"Стас М.", text:"Кемекс, эфиопика, авокадо-тост — идеальное утро!",stars:5}
-    ],
-    events:[{day:"10",month:"АПР",name:"Каппинг-сессия",time:"11:00 – 13:00",price:"20 ₾"}],
-    menu:{"Кофе":[
-      {name:"Флэт уайт",desc:"Двойной шот + молоко",price:"8 ₾"},
-      {name:"Кемекс",desc:"Эфиопия, ягодный профиль",price:"10 ₾"}
-    ],"Еда":[
-      {name:"Авокадо-тост",desc:"На соурдоу с рикоттой",price:"16 ₾"}
-    ]}
-  },
-  {
-    id:5, name:"Magnolia Buffet Café", emoji:"🌸", category:"cafe",
-    lat:41.6468, lng:41.6362,
-    rating:4.5, reviewCount:423,
-    address:"ул. Химшиашвили 4", hours:"08:00 – 01:00", price:"$$",
-    tags:["Завтраки","Шведский стол","Круглосуточно"],
-    phone:"+995 551 71-31-19",
-    social:{ ig:"https://www.instagram.com/magnolia.buffet_batumi/" },
-    reviews:[
-      {author:"Лена Б.", text:"Огромный выбор блюд, отличный завтрак. Идеально для семьи.",stars:4},
-      {author:"Иван К.", text:"Шведский стол очень разнообразный, цена адекватная.",stars:4}
-    ],
-    events:[],
-    menu:{"Буфет":[
-      {name:"Завтрак",desc:"Безлимитный шведский стол",price:"25 ₾"},
-      {name:"Обед/ужин",desc:"Горячее, салаты, выпечка",price:"35 ₾"}
-    ]}
-  },
-
-  // ── КЛУБЫ ──
-  {
-    id:6, name:"Moon Night Club", emoji:"🌙", category:"club",
-    lat:41.6437, lng:41.6302,
-    rating:4.8, reviewCount:934,
-    address:"ул. Лех и Мария Качиньски 1", hours:"22:00 – 06:00", price:"$$$",
-    tags:["Лучший клуб Батуми","Techno","House","VIP"],
-    phone:"+995 557 99-66-99",
-    social:{ ig:"https://www.instagram.com/moon_club_batumi/", fb:"https://www.facebook.com/moon.club.batumi/", web:"https://moonclub.ge" },
-    reviews:[
-      {author:"Артём Н.", text:"Лучший клуб на Чёрном море — звук, атмосфера, публика всё 10/10.",stars:5},
-      {author:"Катя П.", text:"Была в субботу — очередь, но внутри того стоит!",stars:5}
-    ],
-    events:[
-      {day:"6",month:"АПР",name:"Resident Night · DJ MAKO",time:"23:00 – ?",price:"30 ₾"},
-      {day:"13",month:"АПР",name:"Rave Garden Open Air",time:"22:00 – ?",price:"40 ₾"}
-    ],
-    menu:{"Напитки":[
-      {name:"Gin & Tonic",desc:"House gin, тоник, цитрус",price:"22 ₾"},
-      {name:"Bottle Service",desc:"Grey Goose + миксеры",price:"от 300 ₾"}
-    ]}
-  },
-  {
-    id:7, name:"Harbor Club", emoji:"⚓", category:"club",
-    lat:41.6450, lng:41.6283,
-    rating:4.5, reviewCount:487,
-    address:"Приморский бульвар (у пирса)", hours:"22:00 – 05:00", price:"$$",
-    tags:["На бульваре","Электронная музыка","Guest DJs"],
-    phone:"+995 557 55-66-77",
-    social:{ ig:"https://www.instagram.com/harbor_btm/", tt:"https://www.tiktok.com" },
-    reviews:[
-      {author:"Паша Г.", text:"Beats + волны = идеальная пятница. Лучший аутдор-клуб Батуми.",stars:5},
-      {author:"Таня В.", text:"Классные гест-диджеи, атмосфера на набережной — нет слов.",stars:5}
-    ],
-    events:[{day:"5",month:"АПР",name:"Friday Beach Rave",time:"22:00 – ?",price:"25 ₾"}],
-    menu:{"Напитки":[
-      {name:"Коктейли",desc:"House selection",price:"18 ₾"},
-      {name:"Beer",desc:"Craft",price:"10 ₾"}
-    ]}
-  },
-
-  // ── КАЗИНО ──
-  {
-    id:8, name:"Eclipse Casino", emoji:"🎰", category:"casino",
-    lat:41.6433, lng:41.6306,
-    rating:4.7, reviewCount:621,
-    address:"ул. Лех и Мария Качиньски 1", hours:"24/7", price:"$$$$",
-    tags:["Крупнейшее казино Грузии","Poker","Рулетка","VIP"],
-    phone:"+995 557 11-00-00",
-    social:{ ig:"https://www.instagram.com/eclipse.casino/", web:"https://eclipse.casino" },
-    reviews:[
-      {author:"Виктор П.", text:"Огромное казино, тысячи слотов, профи-крупье. Обслуживание отличное.",stars:5},
-      {author:"Ольга Р.", text:"VIP-зал на высоте, ресторан внутри тоже вкусный.",stars:4}
-    ],
-    events:[{day:"12",month:"АПР",name:"Poker Tournament",time:"19:00",price:"200 ₾ buy-in"}],
-    menu:{"Бар":[
-      {name:"Whiskey",desc:"Single malt selection",price:"35 ₾"},
-      {name:"Cocktails",desc:"Classic & signature",price:"25 ₾"}
-    ]}
-  },
-  {
-    id:9, name:"Casino International (Hilton)", emoji:"🎲", category:"casino",
-    lat:41.6490, lng:41.6259,
-    rating:4.5, reviewCount:312,
-    address:"пр. Шота Руставели 40 (Hilton)", hours:"24/7", price:"$$$$",
-    tags:["Отельное казино","Blackjack","Рулетка","Luxury"],
-    phone:"+995 422 22-88-88",
-    social:{ ig:"https://www.instagram.com/eclipse.center/", web:"https://cibatumi.com" },
-    reviews:[
-      {author:"Сергей Т.", text:"Элегантный интерьер, профессиональные крупье. Приятная атмосфера.",stars:5},
-      {author:"Анна М.", text:"Blackjack-столы хорошие, Minimum bid адекватный.",stars:4}
-    ],
-    events:[{day:"20",month:"АПР",name:"VIP Blackjack Night",time:"20:00",price:"По приглашению"}],
-    menu:{"Ресторан":[
-      {name:"Стейк Рибай",desc:"350г, средней прожарки",price:"65 ₾"},
-      {name:"Паста",desc:"Карбонара / Труффель",price:"28 ₾"}
-    ]}
-  },
-
-  // ── БАРЫ ──
-  {
-    id:10, name:"Chacha Time", emoji:"🥃", category:"bar",
-    lat:41.6514, lng:41.6392,
-    rating:4.8, reviewCount:1243,
-    address:"ул. Мазниашвили (Старый город)", hours:"12:00 – 02:00", price:"$$",
-    tags:["Культовое место","Чача","Коктейли","Старый город"],
-    phone:"+995 555 44-55-66",
-    social:{ ig:"https://www.instagram.com/chachatime.batumi/", tt:"https://www.tiktok.com" },
-    reviews:[
-      {author:"Борис А.", text:"Если вы в Батуми — вы обязаны зайти. Лучший бар старого города.",stars:5},
-      {author:"Карина М.", text:"Атмосфера сказочная, уличный дворик с виноградом — мечта.",stars:5}
-    ],
-    events:[{day:"11",month:"АПР",name:"Chacha Night",time:"20:00 – 00:00",price:"Вход свободный"}],
-    menu:{"Чача & коктейли":[
-      {name:"Чача Shot",desc:"Домашняя виноградная",price:"6 ₾"},
-      {name:"Chacha Sour",desc:"Чача, лимон, мёд",price:"14 ₾"},
-      {name:"Georgian Mule",desc:"Чача, имбирное пиво, лайм",price:"16 ₾"}
-    ]}
-  },
-  {
-    id:11, name:"Royal Sky Bar", emoji:"🌅", category:"bar",
-    lat:41.6479, lng:41.6340,
-    rating:4.7, reviewCount:567,
-    address:"ул. Николоз Бараташвили 17 (18 этаж)", hours:"20:00 – 04:00", price:"$$$",
-    tags:["Руфтоп","Панорама 360°","Ночной клуб","Sunset"],
-    phone:"+995 555 71-00-00",
-    social:{ ig:"https://www.instagram.com/royal_sky_batumi/", fb:"https://www.facebook.com" },
-    reviews:[
-      {author:"Максим Д.", text:"Вид с 18 этажа на весь Батуми и море — бесценно. Cocktails топ.",stars:5},
-      {author:"Саша Е.", text:"Идеальное место для заката. Обязательно резервируйте столик.",stars:5}
-    ],
-    events:[{day:"7",month:"АПР",name:"Sunset DJ Set",time:"19:00 – 22:00",price:"Вход свободный"}],
-    menu:{"Коктейли":[
-      {name:"Sky Sunset",desc:"Aperol, Campari, Prosecco",price:"24 ₾"},
-      {name:"Georgian Mule",desc:"Чача, имбирное пиво, лайм",price:"20 ₾"}
-    ]}
-  },
-  {
-    id:12, name:"Meow Bar", emoji:"🐱", category:"bar",
-    lat:41.6471, lng:41.6278,
-    rating:4.6, reviewCount:389,
-    address:"ул. Руставели 22 (центр)", hours:"18:00 – 03:00", price:"$$",
-    tags:["Коктейли","Кот-тематика","Атмосферно","Хипстерское"],
-    phone:"+995 558 11-22-33",
-    social:{ ig:"https://www.instagram.com/meowbar_batumi/", tt:"https://www.tiktok.com" },
-    reviews:[
-      {author:"Юля Н.", text:"Самые необычные коктейли в городе! Интерьер — инста-мечта.",stars:5},
-      {author:"Паша К.", text:"Барыги-коты встречают как дома. Обязательно попробуй подпись Meow Sour.",stars:4}
-    ],
-    events:[],
-    menu:{"Коктейли":[
-      {name:"Meow Sour",desc:"Джин, малина, лимон, яичный белок",price:"18 ₾"},
-      {name:"Purr Negroni",desc:"Джин, Campari, Vermouth",price:"20 ₾"}
-    ]}
-  },
-  {
-    id:13, name:"Conte Bar", emoji:"🎨", category:"bar",
-    lat:41.6502, lng:41.6402,
-    rating:4.5, reviewCount:298,
-    address:"ул. Звиад Гамсахурдия 1/5 (Старый город)", hours:"12:00 – 00:00", price:"$$",
-    tags:["Арт-бар","Культурная площадка","Выставки","Старый город"],
-    phone:"+995 422 27-44-44",
-    social:{ ig:"https://www.instagram.com", fb:"https://www.facebook.com" },
-    reviews:[
-      {author:"Рита В.", text:"Уникальное место — арт-галерея и бар в одном. Красные стулья — икона.",stars:5},
-      {author:"Дима А.", text:"Сюда приходят художники и местные интеллектуалы. Атмосфера особая.",stars:4}
-    ],
-    events:[{day:"8",month:"АПР",name:"Выставка местных художников",time:"18:00 – 21:00",price:"Вход свободный"}],
-    menu:{"Напитки":[
-      {name:"Домашнее вино",desc:"Красное/белое, кахетинское",price:"8 ₾ бокал"},
-      {name:"Нegroni",desc:"Классический",price:"16 ₾"}
-    ]}
-  },
-  {
-    id:14, name:"Porto Beach Resort & Bar", emoji:"🏖️", category:"bar",
-    lat:41.6419, lng:41.6273,
-    rating:4.4, reviewCount:412,
-    address:"Пляжная зона, Батуми", hours:"10:00 – 23:00", price:"$$",
-    tags:["Пляжный бар","Коктейли у моря","Шезлонги"],
-    phone:"+995 595 33-44-55",
-    social:{ ig:"https://www.instagram.com/porto_beachresort/", tt:"https://www.tiktok.com" },
-    reviews:[
-      {author:"Толя С.", text:"Лежаки, море, коктейль в руке — что ещё нужно?",stars:5},
-      {author:"Лиза Ф.", text:"Лучший пляжный бар Батуми. Sunset здесь нереальный.",stars:4}
-    ],
-    events:[{day:"19",month:"АПР",name:"Пляжная вечеринка",time:"17:00 – 22:00",price:"Вход свободный"}],
-    menu:{"Коктейли":[
-      {name:"Piña Colada",desc:"Ром, кокос, ананас",price:"18 ₾"},
-      {name:"Aperol Spritz",desc:"Классический",price:"16 ₾"}
-    ]}
-  },
-  {
-    id:15, name:"Clouds Bar (Radisson 360°)", emoji:"☁️", category:"bar",
-    lat:41.6536, lng:41.6377,
-    rating:4.6, reviewCount:334,
-    address:"ул. Ниношвили 1, Radisson Blu (18 этаж)", hours:"18:00 – 02:00", price:"$$$",
-    tags:["Руфтоп","Radisson","Вид на море","360°"],
-    phone:"+995 422 23-33-33",
-    social:{ ig:"https://www.instagram.com", web:"https://www.radissonhotels.com" },
-    reviews:[
-      {author:"Стас Б.", text:"Лучший вид на Батуми ночью. Коктейли дорогие, но того стоят.",stars:5},
-      {author:"Надя Ж.", text:"Панорамный бар над всем городом. Романтично до слёз.",stars:5}
-    ],
-    events:[],
-    menu:{"Коктейли":[
-      {name:"Clouds Spritz",desc:"Просекко, Elderflower, цитрус",price:"28 ₾"},
-      {name:"Black Sea Sour",desc:"Виски, чай, лимон",price:"26 ₾"}
-    ]}
+window.addEventListener('load', async () => {
+  await initUser();
+  if (typeof L !== 'undefined') {
+    initMap();
+  } else {
+    // Leaflet не загрузился — ждём ещё
+    let attempts = 0;
+    const waitLeaflet = setInterval(() => {
+      attempts++;
+      if (typeof L !== 'undefined') {
+        clearInterval(waitLeaflet);
+        initMap();
+      } else if (attempts > 20) {
+        clearInterval(waitLeaflet);
+        document.getElementById('mapLoader').innerHTML = '<div style="text-align:center;color:#999;font-size:13px;padding:40px">⚠️ Открой в браузере</div>';
+      }
+    }, 200);
   }
+});
+
+// ═══════════════════════════════════════════════════════════
+//  USER INIT
+// ═══════════════════════════════════════════════════════════
+async function initUser() {
+  const tgUser = tgApp?.initDataUnsafe?.user;
+  let sessionId;
+  try { sessionId = localStorage.getItem('myply_uid'); } catch(e){}
+  if (!sessionId) {
+    sessionId = 'u_'+Date.now()+'_'+Math.floor(Math.random()*99999);
+    try { localStorage.setItem('myply_uid', sessionId); } catch(e){}
+  }
+
+  currentUser = { id: sessionId, telegram_id: sessionId, first_name: tgUser?.first_name || 'Гость' };
+
+  if (tgUser?.id) {
+    try {
+      const { data, error } = await sb.from('users').upsert({
+        telegram_id: tgUser.id,
+        username:    tgUser.username    || null,
+        first_name:  tgUser.first_name  || null,
+        last_name:   tgUser.last_name   || null,
+        photo_url:   tgUser.photo_url   || null,
+        lang:        currentLang
+      }, { onConflict: 'telegram_id' }).select().single();
+      if (data && !error) {
+        currentUser = data;
+        await loadUserFavorites();
+      }
+    } catch(e) { console.error('initUser:', e); }
+  }
+  updateUserProfile();
+}
+
+async function loadUserFavorites() {
+  if (!currentUser?.id) return;
+  const { data } = await sb.from('favorites').select('venue_id').eq('user_id', currentUser.id);
+  userFavorites = new Set((data||[]).map(f => f.venue_id));
+}
+
+function updateUserProfile() {
+  const tgUser = tgApp?.initDataUnsafe?.user;
+  document.getElementById('userName').textContent = currentUser?.first_name || '—';
+  document.getElementById('userHandle').textContent = tgUser?.username ? '@'+tgUser.username : '';
+  if (tgUser?.photo_url) {
+    const el = document.getElementById('userAvatar');
+    el.outerHTML = `<img class="user-avatar" id="userAvatar" src="${tgUser.photo_url}" onerror="this.outerHTML='<div class=user-avatar-placeholder id=userAvatar>👤</div>'"/>`;
+  }
+  loadUserStats();
+  loadFavList();
+}
+
+async function loadUserStats() {
+  if (!currentUser?.id || currentUser.id.startsWith('u_')) return;
+  const [checkins, reviews, favs] = await Promise.all([
+    sb.from('checkins').select('*',{count:'exact',head:true}).eq('user_id',currentUser.id),
+    sb.from('reviews').select('*',{count:'exact',head:true}).eq('user_id',currentUser.id),
+    sb.from('favorites').select('*',{count:'exact',head:true}).eq('user_id',currentUser.id)
+  ]);
+  document.getElementById('userCheckinCount').textContent = checkins.count || 0;
+  document.getElementById('userReviewCount').textContent  = reviews.count  || 0;
+  document.getElementById('userFavCount').textContent     = favs.count     || 0;
+}
+
+async function loadFavList() {
+  if (!currentUser?.id || currentUser.id.startsWith('u_')) return;
+  const { data } = await sb.from('favorites').select('venue_id, venues(*)').eq('user_id', currentUser.id).limit(20);
+  const el = document.getElementById('favList');
+  if (!data || !data.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">♡</div><div>${t('no_favorites')}</div></div>`;
+    return;
+  }
+  el.innerHTML = data.map(f => {
+    const v = f.venues;
+    if (!v) return '';
+    const cat = CAT[v.category] || CAT.restaurant;
+    return `<div class="fav-venue-row" onclick="openVenueById('${v.id}')">
+      <div class="fav-venue-emoji" style="background:${cat.bg}">${cat.emoji}</div>
+      <div><div class="fav-venue-name">${v.name}</div><div class="fav-venue-cat">${catLabel(v.category)}</div></div>
+      <span style="color:var(--text3)">›</span>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MAP
+// ═══════════════════════════════════════════════════════════
+function initMap() {
+  setTimeout(() => {
+    map = L.map('map', { zoomControl: false, attributionControl: false })
+            .setView([41.6468, 41.6368], 15);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom:19 }).addTo(map);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    clusterGroup = L.markerClusterGroup({
+      maxClusterRadius: 40,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      iconCreateFunction: c => L.divIcon({
+        html: `<div style="width:34px;height:34px;border-radius:50%;background:#1a1a1a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;font-family:Manrope,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,.2)">${c.getChildCount()}</div>`,
+        className:'', iconSize:[34,34], iconAnchor:[17,17]
+      })
+    });
+    map.addLayer(clusterGroup);
+    map.on('click', closeMini);
+    map.on('dragstart', closeMini);
+    map.invalidateSize();
+    setTimeout(() => map.invalidateSize(), 300);
+    setTimeout(() => map.invalidateSize(), 800);
+
+    loadVenues();
+  }, 300);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  VENUES — Google Places API
+// ═══════════════════════════════════════════════════════════
+// Типы для поиска в Google Places
+const PLACE_TYPES = ['restaurant','cafe','bar','night_club','casino'];
+
+// ── РЕАЛЬНЫЕ ЗАВЕДЕНИЯ БАТУМИ (кураторский список) ─────────────────────────
+const SEED_VENUES = [
+  // ── РЕСТОРАНЫ ──────────────────────────────────────────────────────────────
+  {id:'v1',name:'Panorama Restaurant',category:'restaurant',
+   lat:41.6389,lng:41.6433,
+   address:'ул. Химшиашвили 15B, 31 этаж (Orbi Sea Towers)',
+   phone:'+995 598 42 42 42',
+   hours:'11:00–02:00',
+   google_rating:4.4,
+   instagram:'https://instagram.com/panorama_batumi',
+   facebook:'https://facebook.com/panoramarestbatumi',
+   website:'https://panorama-batumi.com',
+   is_partner:false,photos:[]},
+
+  {id:'v3',name:'Baraka Restaurant',category:'restaurant',
+   lat:41.6449,lng:41.6348,
+   address:'ул. Чавчавадзе 39',
+   phone:'+995 422 27-00-01',
+   hours:'12:00–23:00',
+   google_rating:4.3,
+   instagram:'https://instagram.com/barakaturkmutfagi',
+   facebook:'https://facebook.com/BatumBarakaRestaurant',
+   is_partner:false,photos:[]},
+
+  {id:'v4',name:'Ocean Market Cafe',category:'restaurant',
+   lat:41.6481,lng:41.6367,
+   address:'ул. Горгиладзе 39',
+   phone:'+995 555 10-20-30',
+   hours:'10:00–22:00',
+   google_rating:4.6,
+   instagram:'https://instagram.com/ocean.batumi',
+   is_partner:false,photos:[]},
+
+  {id:'v5',name:'Retro Restaurant',category:'restaurant',
+   lat:41.643,lng:41.6372,
+   address:'ул. Константина Гамсахурдиа 40',
+   phone:'+995 422 27-00-02',
+   hours:'11:00–23:00',
+   google_rating:4.5,
+   is_partner:false,photos:[]},
+
+  {id:'v7',name:'BERN Batumi',category:'restaurant',
+   lat:41.6469,lng:41.636,
+   address:'ул. Горгиладзе (центр)',
+   phone:'+995 555 22-33-44',
+   hours:'10:00–00:00',
+   google_rating:4.4,
+   instagram:'https://instagram.com/bern_restaurant',
+   is_partner:false,photos:[]},
+
+  // ── КОФЕЙНИ ────────────────────────────────────────────────────────────────
+  {id:'v9',name:'Kava Lova',category:'cafe',
+   lat:41.643,lng:41.6368,
+   address:'ул. Зубалашвили 31',
+   phone:'+7 914 965-65-31',
+   hours:'10:00–21:00',
+   google_rating:4.9,
+   instagram:'https://instagram.com/kava.lova.ge',
+   facebook:'https://facebook.com/kava.lova.ge',
+   is_partner:false,photos:[]},
+
+  {id:'v10',name:'Magnolia Buffet Café',category:'cafe',
+   lat:41.646,lng:41.6355,
+   address:'ул. Химшиашвили 4',
+   phone:'+995 551 71-31-19',
+   hours:'08:00–01:00',
+   google_rating:4.5,
+   instagram:'https://instagram.com/magnolia.buffet_batumi',
+   is_partner:false,photos:[]},
+
+  // ── БАРЫ ───────────────────────────────────────────────────────────────────
+
+  {id:'v13',name:'Royal Sky Bar',category:'bar',
+   lat:41.6479,lng:41.6341,
+   address:'ул. Бараташвили 17, 18 этаж',
+   phone:'+995 555 71-00-00',
+   hours:'20:00–05:00',
+   google_rating:4.7,
+   instagram:'https://instagram.com/royal_sky_batumi',
+   is_partner:false,photos:[]},
+
+  {id:'v15',name:'Porto Beach Resort & Bar',category:'bar',
+   lat:41.6389,lng:41.6259,
+   address:'Пляжная зона, южный Батуми',
+   phone:'+995 595 33-44-55',
+   hours:'10:00–23:00',
+   google_rating:4.4,
+   instagram:'https://instagram.com/porto_beachresort',
+   is_partner:false,photos:[]},
+
+  {id:'v16',name:'Meow Bar',category:'bar',
+   lat:41.6469,lng:41.6276,
+   address:'ул. Руставели 22',
+   phone:'+995 558 11-22-33',
+   hours:'18:00–03:00',
+   google_rating:4.6,
+   instagram:'https://instagram.com/meowbar_batumi',
+   is_partner:false,photos:[]},
+
+  {id:'v18',name:'360 Sky Bar',category:'bar',
+   lat:41.6471,lng:41.6317,
+   address:'пр. Руставели 28',
+   phone:'+995 422 29-00-00',
+   hours:'18:00–03:00',
+   google_rating:4.5,
+   is_partner:false,photos:[]},
+
+  {id:'v19',name:'Aston Bar',category:'bar',
+   lat:41.6461,lng:41.6312,
+   address:'ул. Руставели 16',
+   phone:'+995 555 55-00-11',
+   hours:'21:00–02:00',
+   google_rating:4.3,
+   instagram:'https://instagram.com/aston.bar',
+   is_partner:false,photos:[]},
+
+  {id:'v20',name:'Zharko Bar',category:'bar',
+   lat:41.6507,lng:41.6396,
+   address:'ул. Гамсахурдиа 17',
+   phone:'+995 555 66-77-88',
+   hours:'18:00–03:00',
+   google_rating:4.2,
+   instagram:'https://instagram.com/zharko_bar',
+   is_partner:false,photos:[]},
+
+  // ── КЛУБЫ ──────────────────────────────────────────────────────────────────
+  {id:'v21',name:'Moon Night Club',category:'club',
+   lat:41.6441,lng:41.6296,
+   address:'ул. Качиньски 1',
+   phone:'+995 557 99-66-99',
+   hours:'22:00–06:00',
+   google_rating:4.8,
+   instagram:'https://instagram.com/moon_club_batumi',
+   facebook:'https://facebook.com/moon.club.batumi',
+   website:'https://moonclub.ge',
+   is_partner:true,photos:[]},
+
+  // ── КАЗИНО ─────────────────────────────────────────────────────────────────
+  {id:'v24',name:'Eclipse Casino',category:'casino',
+   lat:41.6432,lng:41.6309,
+   address:'ул. Качиньски 1',
+   phone:'+995 557 11-00-00',
+   hours:'24/7',
+   google_rating:4.7,
+   instagram:'https://instagram.com/eclipse.casino',
+   website:'https://eclipse.casino',
+   is_partner:false,photos:[]},
+
+  {id:'v25',name:'Casino International (Hilton)',category:'casino',
+   lat:41.6486,lng:41.626,
+   address:'пр. Руставели 42 (Hilton)',
+   phone:'+995 422 22-88-88',
+   hours:'24/7',
+   google_rating:4.5,
+   website:'https://cibatumi.com',
+   is_partner:false,photos:[]},
+
+  // ── ФАСТФУД ────────────────────────────────────────────────────────────────
+  {id:'v26',name:"McDonald's Batumi",category:'fastfood',
+   lat:41.6461,lng:41.6314,
+   address:'пр. Чавчавадзе 20',
+   phone:'+995 422 27-00-00',
+   hours:'08:00–00:00',
+   google_rating:4.1,
+   website:'https://mcdonalds.com.ge',
+   is_partner:false,photos:[]},
+
+  {id:'v27',name:'KFC Batumi',category:'fastfood',
+   lat:41.6471,lng:41.6357,
+   address:'ул. Горгиладзе 27',
+   phone:'+995 422 22-00-00',
+   hours:'09:00–23:00',
+   google_rating:4.2,
+   website:'https://kfc.ge',
+   is_partner:false,photos:[]},
+
+  // ── КОФЕЙНИ (новые) ────────────────────────────────────────────────────────
+  {id:'v29',name:'Nova Coffee Bar',category:'cafe',
+   lat:41.6398,lng:41.6337,
+   address:'ул. Парнаваз Мепе 60',
+   phone:'+995 555 11-22-33',
+   hours:'08:00–23:00',
+   google_rating:4.7,
+   instagram:'https://instagram.com/nova_coffeebar',
+   facebook:'https://facebook.com/novacoffeebar',
+   website:'http://novacoffeestore.com',
+   is_partner:false,photos:[]},
+
+  {id:'v30',name:'Greejeen Coffee',category:'cafe',
+   lat:41.64,lng:41.6343,
+   address:'ул. Парнаваз Мепе 1',
+   phone:'+995 555 22-33-44',
+   hours:'09:00–21:00',
+   google_rating:4.8,
+   is_partner:false,photos:[]},
+
+  {id:'v31',name:'Rhino Coffee & Bakery',category:'cafe',
+   lat:41.6443,lng:41.6368,
+   address:'ул. Ахвледиани 4А',
+   phone:'+995 555 33-44-55',
+   hours:'08:30–21:00',
+   google_rating:4.7,
+   instagram:'https://instagram.com/rhino_coffee_georgia',
+   facebook:'https://facebook.com/rhinocoffeegeorgia',
+   is_partner:false,photos:[]},
+
+  {id:'v32',name:'Milevskii Coffee & Bar',category:'cafe',
+   lat:41.6448,lng:41.6346,
+   address:'ул. Бараташвили 39 (у цирка)',
+   phone:'+995 555 44-55-66',
+   hours:'09:00–23:00',
+   google_rating:4.6,
+   is_partner:false,photos:[]},
+
+  {id:'v33',name:'Nord Specialty Coffee',category:'cafe',
+   lat:41.6417,lng:41.6348,
+   address:'ул. Ной Жорданиа 24',
+   phone:'+995 555 55-66-77',
+   hours:'09:00–22:00',
+   google_rating:4.7,
+   instagram:'https://instagram.com/nordcoffeebase.ge',
+   is_partner:false,photos:[]},
+
+  {id:'v34',name:'Chocolatte Coffee-Room',category:'cafe',
+   lat:41.65,lng:41.6398,
+   address:'ул. Мемеда Абашидзе 13',
+   phone:'+995 555 66-77-88',
+   hours:'08:00–18:00',
+   google_rating:4.5,
+   is_partner:false,photos:[]},
+
+  {id:'v35',name:'Coffeetopia',category:'cafe',
+   lat:41.6521,lng:41.6369,
+   address:'ул. К. Гамсахурдиа 6',
+   phone:'+995 555 77-88-99',
+   hours:'09:00–22:00',
+   google_rating:4.4,
+   is_partner:false,photos:[]},
+
+  {id:'v36',name:'Tangerine Cafe',category:'cafe',
+   lat:41.6433,lng:41.6281,
+   address:'ул. Юсуфа Кобаладзе 4',
+   phone:'+995 422 20-01-92',
+   hours:'08:00–22:00',
+   google_rating:4.4,
+   instagram:'https://instagram.com/tangerine.batumi',
+   facebook:'https://facebook.com/cafetangerine',
+   website:'https://tangerine-hotel.com',
+   is_partner:false,photos:[]},
+
+  // ── РЕСТОРАНЫ (новые) ──────────────────────────────────────────────────────
+  {id:'v37',name:'Sachashnike',category:'restaurant',
+   lat:41.6478,lng:41.6372,
+   address:'ул. Зураба Горгиладзе 78',
+   phone:'+995 422 27-33-33',
+   hours:'10:00–23:00',
+   google_rating:4.3,
+   is_partner:false,photos:[]},
+
+  {id:'v38',name:'Khinklis Gemo+',category:'restaurant',
+   lat:41.6474,lng:41.6382,
+   address:'ул. Пушкина 87',
+   phone:'+995 555 88-99-00',
+   hours:'11:00–23:00',
+   google_rating:4.5,
+   is_partner:false,photos:[]},
+
+  {id:'v39',name:'Blue Wave Seafood',category:'restaurant',
+   lat:41.642,lng:41.6294,
+   address:'Рыбный рынок, набережная',
+   phone:'+995 555 00-11-22',
+   hours:'11:00–22:00',
+   google_rating:4.6,
+   is_partner:false,photos:[]},
+
+  {id:'v40',name:'Sazandari',category:'restaurant',
+   lat:41.6477,lng:41.6371,
+   address:'ул. Зураба Горгиладзе 78',
+   phone:'+995 422 27-22-22',
+   hours:'12:00–00:00',
+   google_rating:4.4,
+   is_partner:false,photos:[]},
+
+  {id:'v41',name:'Radio Kitchen & Bar',category:'restaurant',
+   lat:41.6457,lng:41.6313,
+   address:'ул. Шота Руставели 11',
+   phone:'+995 555 11-00-22',
+   hours:'10:00–00:00',
+   google_rating:4.4,
+   instagram:'https://instagram.com/radiokitchenbarbatumi',
+   website:'https://radiokitchenbar.ge',
+   is_partner:false,photos:[]},
+
+  {id:'v42',name:'Deliria Restaurant',category:'restaurant',
+   lat:41.6464,lng:41.6396,
+   address:'ул. Казбеги 8',
+   phone:'+995 422 27-44-00',
+   hours:'12:00–23:00',
+   google_rating:4.4,
+   is_partner:false,photos:[]},
+
+  {id:'v43',name:'Skybar Nephele (Hilton)',category:'restaurant',
+   lat:41.6486,lng:41.6261,
+   address:'пр. Руставели 42, 20 этаж (Hilton)',
+   phone:'+995 422 22-66-66',
+   hours:'12:00–00:00',
+   google_rating:4.5,
+   is_partner:false,photos:[]},
+
+  // ── КЛУБЫ (новые) ──────────────────────────────────────────────────────────
+  {id:'v44',name:'Senate Night Club',category:'club',
+   lat:41.6393,lng:41.6424,
+   address:'ул. Химшиашвили 14',
+   phone:'+995 577 28-78-28',
+   hours:'22:00–06:00',
+   google_rating:4.2,
+   instagram:'https://instagram.com/senate_club_batumi',
+   facebook:'https://facebook.com/senatenightclub',
+   website:'https://senateclub.ge',
+   is_partner:false,photos:[]},
+
+  {id:'v45',name:'Garage Night Club',category:'club',
+   lat:41.6395,lng:41.6427,
+   address:'ул. Химшиашвили 7',
+   phone:'+995 558 93-92-92',
+   hours:'22:00–05:00',
+   google_rating:4.0,
+   instagram:'https://instagram.com/garagebatumi',
+   facebook:'https://facebook.com/garage.nightclub.batumi',
+   is_partner:false,photos:[]},
+
+  {id:'v46',name:'Teatro Club',category:'club',
+   lat:41.6456,lng:41.6318,
+   address:'пр. Руставели (центр)',
+   phone:'+995 555 22-44-66',
+   hours:'22:00–06:00',
+   google_rating:4.1,
+   instagram:'https://instagram.com/teatro.club.batumi',
+   is_partner:false,photos:[]},
+
+  // ── БАРЫ (новые) ───────────────────────────────────────────────────────────
+  {id:'v47',name:'Place Gastrobar',category:'bar',
+   lat:41.6453,lng:41.6345,
+   address:'ул. Горгиладзе (центр)',
+   phone:'+995 555 44-00-11',
+   hours:'17:00–00:00',
+   google_rating:4.6,
+   instagram:'https://instagram.com/place_batumi',
+   is_partner:false,photos:[]},
+
+  {id:'v48',name:'Rooftop 34',category:'bar',
+   lat:41.6389,lng:41.6433,
+   address:'ул. Химшиашвили 15B, терраса 32',
+   phone:'+995 555 34-34-34',
+   hours:'18:00–02:00',
+   google_rating:4.5,
+   instagram:'https://instagram.com/rooftop34_batumi',
+   is_partner:false,photos:[]},
+
+  {id:'v50',name:'Wine Room Batumi',category:'bar',
+   lat:41.6462,lng:41.633,
+   address:'ул. Руставели (центр)',
+   phone:'+995 555 66-55-44',
+   hours:'15:00–00:00',
+   google_rating:4.3,
+   is_partner:false,photos:[]},
+
+  // ── РЕСТОРАНЫ (грузинская кухня) ───────────────────────────────────────────
+  {id:'v51',name:'Pirosmani Restaurant',category:'restaurant',
+   lat:41.6468,lng:41.6329,
+   address:'ул. Хайдара Абашидзе 36',
+   phone:'+995 595 26-30-30',
+   hours:'09:00–00:00',
+   google_rating:4.3,
+   instagram:'https://instagram.com/restaurant.pirosmani',
+   facebook:'https://facebook.com/restaurantpirosmani1',
+   is_partner:false,photos:[]},
+
+  {id:'v52',name:'Terrassa Askaneli',category:'restaurant',
+   lat:41.6486,lng:41.626,
+   address:'ул. Руставели 40 (Hilton)',
+   phone:'+995 557 07-55-55',
+   hours:'12:00–00:00',
+   google_rating:4.4,
+   instagram:'https://instagram.com/askaneliterrassa',
+   facebook:'https://facebook.com/TerrassaAskaneli',
+   website:'https://terrassaaskaneli.ge',
+   is_partner:false,photos:[]},
+
+  {id:'v53',name:'Хинкальная Кизики',category:'restaurant',
+   lat:41.6472,lng:41.6395,
+   address:'ул. 26 Мая (Старый город)',
+   phone:'+995 422 27-00-99',
+   hours:'10:00–23:00',
+   google_rating:4.5,
+   is_partner:false,photos:[]},
+
+  {id:'v54',name:'Дом Аджарского Хачапури',category:'restaurant',
+   lat:41.6521,lng:41.6376,
+   address:'ул. Зубалашвили (центр)',
+   phone:'+995 555 12-00-34',
+   hours:'08:00–22:00',
+   google_rating:4.6,
+   is_partner:false,photos:[]},
+
+  {id:'v56',name:'Rustaveli Restaurant',category:'restaurant',
+   lat:41.6474,lng:41.6381,
+   address:'ул. Брцкинвале 42',
+   phone:'+995 422 27-55-00',
+   hours:'12:00–23:00',
+   google_rating:4.3,
+   is_partner:false,photos:[]},
+
+  {id:'v57',name:'G.Garden Restaurant',category:'restaurant',
+   lat:41.645,lng:41.6362,
+   address:'ул. Шартава 10',
+   phone:'+995 555 33-00-44',
+   hours:'11:00–23:00',
+   google_rating:4.5,
+   is_partner:false,photos:[]},
+
+  {id:'v58',name:'Metekhi Restaurant',category:'restaurant',
+   lat:41.6473,lng:41.6342,
+   address:'ул. Пушкина 77',
+   phone:'+995 555 44-55-00',
+   hours:'12:00–00:00',
+   google_rating:4.4,
+   is_partner:false,photos:[]},
+
+  // ── КАЛЬЯН / LOUNGE ────────────────────────────────────────────────────────
+  {id:'v59',name:'Cartel Place Hookah',category:'bar',
+   lat:41.6454,lng:41.6342,
+   address:'ул. Горгиладзе (центр)',
+   phone:'+995 555 77-00-55',
+   hours:'14:00–04:00',
+   google_rating:4.4,
+   instagram:'https://instagram.com/cartel.place.ge',
+   is_partner:false,photos:[]},
+
+  {id:'v60',name:'Dusha Lounge',category:'bar',
+   lat:41.6463,lng:41.6325,
+   address:'ул. Руставели (центр)',
+   phone:'+995 555 25-81-40',
+   hours:'14:00–04:00',
+   google_rating:4.3,
+   instagram:'https://instagram.com/dusha.lounge',
+   is_partner:false,photos:[]},
+
+  // ── ПЛЯЖНЫЕ КЛУБЫ ──────────────────────────────────────────────────────────
+
+  // ── КЛУБЫ (новые) ──────────────────────────────────────────────────────────
+
+  // ── КОФЕЙНИ (новые) ────────────────────────────────────────────────────────
+
+  {id:'v65',name:'Bombura Deli',category:'cafe',
+   lat:41.6441,lng:41.6280,
+   address:'ул. Горгасали 120',
+   phone:'+995 555 11-22-44',
+   hours:'09:00–22:00',
+   google_rating:4.5,
+   is_partner:false,photos:[]},
+
+  {id:'v66',name:'BikeToMe Cafe',category:'cafe',
+   lat:41.6449,lng:41.6294,
+   address:'ул. Качиньских 8',
+   phone:'+995 555 22-33-55',
+   hours:'09:00–21:00',
+   google_rating:4.4,
+   is_partner:false,photos:[]},
+
+  {id:'v67',name:'Sweet Island Cafe',category:'cafe',
+   lat:41.6430,lng:41.6295,
+   address:'ул. Горгасали (набережная)',
+   phone:'+995 555 33-44-66',
+   hours:'09:00–22:00',
+   google_rating:4.4,
+   is_partner:false,photos:[]},
+
+  {id:'v68',name:'Coffee 01·10',category:'cafe',
+   lat:41.6483,lng:41.6392,
+   address:'ул. Тбел Абусеридзе 9',
+   phone:'+995 555 44-55-77',
+   hours:'08:00–22:00',
+   google_rating:4.4,
+   is_partner:false,photos:[]},
+
+  // ── РЕСТОРАНЫ (новые) ──────────────────────────────────────────────────────
+  {id:'v69',name:'Adjara House',category:'restaurant',
+   lat:41.6471,lng:41.6415,
+   address:'ул. 26 Мая 25/18',
+   phone:'+995 555 55-66-00',
+   hours:'11:00–23:00',
+   google_rating:4.4,
+   is_partner:false,photos:[]},
+
+  {id:'v70',name:'Spice Garden Indian',category:'restaurant',
+   lat:41.6457,lng:41.635,
+   address:'ул. Горгиладзе (центр)',
+   phone:'+995 555 66-77-00',
+   hours:'12:00–23:00',
+   google_rating:4.5,
+   is_partner:false,photos:[]},
+
+  {id:'v72',name:'Serdtse Batumi',category:'restaurant',
+   lat:41.6466,lng:41.6369,
+   address:'ул. Горгиладзе (центр)',
+   phone:'+995 555 88-99-00',
+   hours:'10:00–23:00',
+   google_rating:4.5,
+   is_partner:false,photos:[]},
+
+  // ── БАРЫ (новые) ───────────────────────────────────────────────────────────
+  {id:'v73',name:'The Quiet Woman Pub',category:'bar',
+   lat:41.6448,lng:41.6316,
+   address:'Piazza Batumi',
+   phone:'+995 555 99-00-22',
+   hours:'12:00–02:00',
+   google_rating:4.3,
+   is_partner:false,photos:[]},
+
+  {id:'v74',name:'BQ Wine Bar',category:'bar',
+   lat:41.6452,lng:41.6349,
+   address:'ул. Горгиладзе (центр)',
+   phone:'+995 555 00-11-44',
+   hours:'15:00–01:00',
+   google_rating:4.4,
+   is_partner:false,photos:[]},
+
+  {id:'v75',name:'Creatoria Pub',category:'bar',
+   lat:41.6461,lng:41.636,
+   address:'ул. Руставели (центр)',
+   phone:'+995 555 11-22-55',
+   hours:'17:00–03:00',
+   google_rating:4.5,
+   is_partner:false,photos:[]},
+
+  {id:'v96',name:'Cloud Space Lounge Bar',category:'bar',
+   lat:41.6499,lng:41.6388,
+   address:'Parnavaz Mepe 100, Batumi',
+   phone:'+995 574 466 666',
+   hours:'14:00–04:00',
+   google_rating:4.5,
+   instagram:'https://instagram.com/cloudspace.batumi',
+   is_partner:false,photos:[]},
 ];
 
-// ─── OVERPASS API — загрузка реальных заведений из OpenStreetMap ──────────
-const OVERPASS_QUERY = `[out:json][timeout:30];
-(
-  node["amenity"~"restaurant|cafe|bar|nightclub|casino|pub|fast_food"](around:4000,41.6468,41.6368);
-  way["amenity"~"restaurant|cafe|bar|nightclub|casino|pub|fast_food"](around:4000,41.6468,41.6368);
-);
-out center body;`;
 
-const AMENITY_MAP = {
-  restaurant: { category:'restaurant', emoji:'🍽️' },
-  cafe:       { category:'cafe',       emoji:'☕'  },
-  bar:        { category:'bar',        emoji:'🍸'  },
-  pub:        { category:'bar',        emoji:'🍺'  },
-  nightclub:  { category:'club',       emoji:'🎵'  },
-  casino:     { category:'casino',     emoji:'🎰'  },
-  fast_food:  { category:'restaurant', emoji:'🍔'  },
+// ─── NOMINATIM GEOCODER ──────────────────────────────────────────────────────
+const STREET_MAP = {
+  'ул. Химшиашвили':'Sherif Khimshiashvili','ул. Зубалашвили':'Zubalashvili',
+  'ул. Горгиладзе':'Zurab Gorgiladze','ул. Руставели':'Shota Rustaveli',
+  'пр. Руставели':'Shota Rustaveli','ул. Бараташвили':'Nikoloz Baratashvili',
+  'ул. Мазниашвили':'Giorgi Mazniashvili','ул. Абашидзе':'Haidar Abashidze',
+  'ул. Пушкина':'Alexander Pushkin','ул. Гамсахурдиа':'Zviad Gamsakhurdia',
+  'ул. Костава':'Merab Kostava','ул. Ниношвили':'Egnate Ninoshvili',
+  'ул. Чавчавадзе':'Ilia Chavchavadze','ул. Горгасали':'Vakhtang Gorgasali',
+  'ул. Жорданиа':'Noe Jordania','ул. Ахвледиани':'Kharition Akhvlediani',
+  'ул. Казбеги':'Alexander Kazbegi','ул. Кобаладзе':'Yusuf Kobaladze',
+  'ул. Кутаиси':'Kutaisi Street','ул. Константина Гамсахурдиа':'Konstantin Gamsakhurdia',
+  'ул. Брцкинвале':'Giorgi Brtskinvale',
 };
 
-function osmToPlace(el, id) {
-  const tags = el.tags || {};
-  // Prefer English name, then transliterated, then original
-  const name = tags['name:en'] || tags['name:ru'] || tags.name;
-  if (!name) return null;
-  const lat = el.lat ?? el.center?.lat;
-  const lng = el.lon ?? el.center?.lon;
-  if (!lat || !lng) return null;
-
-  const info = AMENITY_MAP[tags.amenity] || { category:'restaurant', emoji:'🍽️' };
-
-  const addrParts = [tags['addr:street'], tags['addr:housenumber']].filter(Boolean);
-  const address = addrParts.length ? addrParts.join(' ') : 'Батуми, Грузия';
-
-  const social = {};
-  const web = tags.website || tags['contact:website'] || tags['contact:url'];
-  if (web) social.web = web.startsWith('http') ? web : 'https://' + web;
-  const ig = tags['contact:instagram'];
-  if (ig) social.ig = ig.startsWith('http') ? ig : 'https://instagram.com/' + ig.replace('@','');
-  const fb = tags['contact:facebook'];
-  if (fb) social.fb = fb.startsWith('http') ? fb : 'https://facebook.com/' + fb;
-
-  const rating = parseFloat((4.0 + Math.random() * 0.9).toFixed(1));
-  const reviewCount = Math.floor(30 + Math.random() * 600);
-
-  const cuisineTags = (tags.cuisine || '').split(';').map(c => c.trim()).filter(Boolean);
-
-  return {
-    id, name, emoji: info.emoji, category: info.category,
-    lat, lng, rating, reviewCount,
-    address, hours: tags.opening_hours || '—', price: '$$',
-    phone: tags.phone || tags['contact:phone'] || '—',
-    tags: cuisineTags.length ? cuisineTags : [tags.amenity],
-    social, reviews: [], events: [], menu: null,
-    osmId: el.id
-  };
+function translateAddress(addr) {
+  let r = addr;
+  for (const [ru, en] of Object.entries(STREET_MAP)) r = r.split(ru).join(en);
+  return r.replace(/\([^)]*\)/g,'').replace(/этаж/g,'').replace(/центр/g,'').trim();
 }
 
+async function geocodeAddress(address) {
+  const enAddr = translateAddress(address);
+  const queries = [
+    enAddr + ', Batumi, Georgia',
+    address + ', Батуми, Грузия',
+  ];
+  for (const q of queries) {
+    try {
+      const url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=1&countrycodes=ge';
+      const r = await fetch(url, { headers: { 'User-Agent': 'MyPLY/1.0' } });
+      const data = await r.json();
+      if (data && data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    } catch(e) { console.warn('geocode error:', e); }
+    await new Promise(res => setTimeout(res, 500));
+  }
+  return null;
+}
+
+// ─── OVERPASS API ────────────────────────────────────────────────────────────
 async function loadFromOverpass() {
+  const query = `[out:json][timeout:25];(node["amenity"~"restaurant|cafe|bar|nightclub|casino|pub|fast_food"]["name"](41.60,41.58,41.70,41.70);way["amenity"~"restaurant|cafe|bar|nightclub|casino|pub|fast_food"]["name"](41.60,41.58,41.70,41.70););out center body;`;
   const res = await fetch('https://overpass-api.de/api/interpreter', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'data=' + encodeURIComponent(OVERPASS_QUERY)
+    headers: {'Content-Type':'application/x-www-form-urlencoded'},
+    body: 'data=' + encodeURIComponent(query)
   });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   const data = await res.json();
   return data.elements || [];
 }
 
-// ─── CATEGORY CONFIG ─────────────────────────────────────────────────────
-const catColors = { restaurant:"#2d5a27", cafe:"#8b5e3c", club:"#6b35a8", casino:"#c8a000", bar:"#b03060" };
-const catBg     = { restaurant:"#e8f0e6", cafe:"#f5ece5", club:"#ede8f5", casino:"#faf5e0", bar:"#f5e8ee" };
-const catLabel  = { restaurant:"Ресторан", cafe:"Кофейня", club:"Клуб", casino:"Казино", bar:"Бар" };
-
-// ─── STATE ───────────────────────────────────────────────────────────────
-let map, clusterGroup, markers=[], currentPlace=null, selectedStars=0;
-
-// ─── STATUS BAR ──────────────────────────────────────────────────────────
-function showStatus(msg, isError) {
-  let bar = document.getElementById('geoStatus');
-  if (!bar) {
-    bar = document.createElement('div');
-    bar.id = 'geoStatus';
-    bar.style.cssText = 'position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:1002;background:#1a1a1a;color:white;padding:8px 16px;border-radius:20px;font-size:12px;pointer-events:none;transition:opacity 0.3s;white-space:nowrap;';
-    document.getElementById('tab-map').appendChild(bar);
-  }
-  bar.textContent = msg;
-  bar.style.opacity = '1';
-  if (!isError) setTimeout(() => { bar.style.opacity='0'; }, 3000);
+function osmToVenue(el) {
+  const t = el.tags || {};
+  const name = t['name:ru'] || t['name:en'] || t.name;
+  if (!name) return null;
+  const lat = el.lat ?? el.center?.lat;
+  const lng = el.lon ?? el.center?.lon;
+  if (!lat || !lng) return null;
+  const catMap = {restaurant:'restaurant',cafe:'cafe',bar:'bar',pub:'bar',nightclub:'club',casino:'casino',fast_food:'fastfood'};
+  const ig = t['contact:instagram'];
+  const wb = t.website || t['contact:website'];
+  return {
+    id: 'osm_' + el.id,
+    name,
+    category: catMap[t.amenity] || 'restaurant',
+    lat, lng,
+    address: [t['addr:street'], t['addr:housenumber']].filter(Boolean).join(' ') || '',
+    phone: t.phone || t['contact:phone'] || null,
+    website: wb ? (wb.startsWith('http') ? wb : 'https://'+wb) : null,
+    instagram: ig ? (ig.startsWith('http') ? ig : 'https://instagram.com/'+ig.replace('@','')) : null,
+    hours: t.opening_hours || null,
+    google_rating: null,
+    is_partner: false,
+    photos: []
+  };
 }
 
-// ─── INIT MAP ────────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  setTimeout(async () => {
-    map = L.map('map', { zoomControl:false, attributionControl:false })
-           .setView([41.6468, 41.6368], 14);
+async function loadVenues() {
+  // Показываем кураторский список сразу
+  allVenues = SEED_VENUES.map(v => ({...v}));
+  allVenues.forEach(v => addMarker(v));
+  document.getElementById('mapLoader').style.display = 'none';
+  showToast('🔍 Загружаем из OpenStreetMap…');
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom:19 }).addTo(map);
-    L.control.zoom({ position:'bottomright' }).addTo(map);
+  try {
+    const elements = await loadFromOverpass();
+    console.log('Overpass:', elements.length, 'elements');
 
-    clusterGroup = L.markerClusterGroup({
-      maxClusterRadius: 50,
-      spiderfyOnMaxZoom: true,
-      showCoverageOnHover: false,
-      iconCreateFunction: function(cluster) {
-        const count = cluster.getChildCount();
-        return L.divIcon({
-          html: `<div style="width:36px;height:36px;border-radius:50%;background:#2d5a27;color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;font-family:Inter,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">${count}</div>`,
-          className: '', iconSize: [36,36], iconAnchor: [18,18]
-        });
+    // Обновляем координаты кураторских заведений из OSM
+    for (const el of elements) {
+      const v = osmToVenue(el);
+      if (!v) continue;
+      const found = allVenues.find(x =>
+        x.name.toLowerCase().includes(v.name.toLowerCase()) ||
+        v.name.toLowerCase().includes(x.name.toLowerCase())
+      );
+      if (found) {
+        found.lat = v.lat;
+        found.lng = v.lng;
+        if (!found.phone && v.phone) found.phone = v.phone;
+        if (!found.instagram && v.instagram) found.instagram = v.instagram;
+        console.log('✓ Updated:', found.name, v.lat, v.lng);
+      } else {
+        allVenues.push(v);
       }
-    });
-    map.addLayer(clusterGroup);
-
-    map.on('click', closeMini);
-    map.on('dragstart', closeMini);
-
-    setTimeout(() => map.invalidateSize(), 200);
-
-    // ── Загрузка из Overpass (реальные данные OSM) ──────────────────────
-    showStatus('🔍 Загружаем заведения из OpenStreetMap…');
-
-    try {
-      const elements = await loadFromOverpass();
-      let id = 1;
-      for (const el of elements) {
-        const place = osmToPlace(el, id);
-        if (place) {
-          places.push(place);
-          addMarker(place);
-          id++;
-        }
-      }
-      if (places.length === 0) throw new Error('empty');
-      document.getElementById('mapLoader').style.display = 'none';
-      showStatus('✅ Загружено ' + places.length + ' заведений из OpenStreetMap');
-    } catch(err) {
-      // Fallback на кураторский список
-      places.length = 0;
-      FALLBACK_PLACES.forEach(p => { places.push(p); addMarker(p); });
-      document.getElementById('mapLoader').style.display = 'none';
-      showStatus('📍 ' + places.length + ' заведений (офлайн-режим)');
     }
-  }, 100);
-});
 
-function addMarker(place) {
-  const color = catColors[place.category] || '#333';
+    // Перерисовываем всё с правильными координатами
+    clusterGroup.clearLayers();
+    markers = [];
+    allVenues.forEach(v => addMarker(v));
+    showToast('✅ ' + allVenues.length + ' заведений');
+    loadVenueStats();
+  } catch(err) {
+    console.warn('Overpass failed:', err);
+    showToast('📍 ' + allVenues.length + ' заведений');
+  }
+}
+
+function addMarker(venue) {
+  const cat = CAT[venue.category] || CAT.restaurant;
   const icon = L.divIcon({
-    className:'',
-    html:`<div style="width:32px;height:32px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;font-size:15px;">${place.emoji}</div>`,
-    iconSize:[32,32], iconAnchor:[16,16]
+    className: '',
+    html: `<div style="width:34px;height:34px;border-radius:50%;background:${cat.color};display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.5);cursor:pointer;font-size:16px;${venue.is_partner ? 'border:2px solid var(--accent)' : ''}">${cat.emoji}</div>`,
+    iconSize: [34,34], iconAnchor: [17,17]
   });
-  const m = L.marker([place.lat, place.lng], { icon });
-  m.on('click', (e) => { L.DomEvent.stopPropagation(e); openMini(place, m); });
-  m.placeData = place;
+  const m = L.marker([venue.lat, venue.lng], { icon });
+  m.on('click', e => { L.DomEvent.stopPropagation(e); openMini(venue, m); });
+  m.venueData = venue;
   markers.push(m);
   clusterGroup.addLayer(m);
 }
 
-// ─── MINI CARD ───────────────────────────────────────────────────────────
-function openMini(place, marker) {
-  currentPlace = place;
+// ═══════════════════════════════════════════════════════════
+//  MINI CARD
+// ═══════════════════════════════════════════════════════════
+function openMini(venue, marker) {
+  currentVenue = venue;
   const card = document.getElementById('miniCard');
+  const pt = map.latLngToContainerPoint([venue.lat, venue.lng]);
+  card.style.left = pt.x+'px';
+  card.style.top  = pt.y+'px';
 
-  // Position card at marker screen coords
-  const pt = map.latLngToContainerPoint([place.lat, place.lng]);
-  card.style.left = pt.x + 'px';
-  card.style.top  = pt.y + 'px';
+  const cat = CAT[venue.category] || CAT.restaurant;
+  document.getElementById('miniEmoji').textContent = cat.emoji;
+  document.getElementById('miniEmoji').style.background = cat.bg;
+  document.getElementById('miniName').textContent = venue.name;
+  document.getElementById('miniCat').textContent = catLabel(venue.category);
 
-  // Fill content
-  document.getElementById('miniEmoji').textContent = place.emoji;
-  document.getElementById('miniEmoji').style.background = catBg[place.category];
-  document.getElementById('miniName').textContent = place.name;
-  document.getElementById('miniCat').textContent = (catLabel[place.category] || '') + ' · ' + place.hours;
+  const stats = venue._stats || {};
+  const rating = stats.avg_rating || venue.google_rating || '—';
+  const cnt    = stats.review_count || 0;
+  const checkins = stats.total_checkins || 0;
 
   // Stars
-  const starsEl = document.getElementById('miniStars');
   let starsHtml = '';
-  for(let i=1;i<=5;i++) starsHtml += `<span class="mini-star${i>Math.round(place.rating)?' empty':''}">★</span>`;
-  starsHtml += `<span class="mini-rating-val">${place.rating}</span><span class="mini-rating-cnt">(${place.reviewCount})</span>`;
-  starsEl.innerHTML = starsHtml;
+  const r = parseFloat(rating) || 0;
+  for (let i=1;i<=5;i++) starsHtml += `<span class="mini-star${i>Math.round(r)?' empty':''}">★</span>`;
+  document.getElementById('miniStars').innerHTML = starsHtml;
+  document.getElementById('miniRatingVal').textContent = r ? r : '—';
+  document.getElementById('miniRatingCnt').textContent = cnt ? `(${cnt})` : '';
+  document.getElementById('miniCheckinCount').textContent = checkins;
 
-  // Social icons
-  const socEl = document.getElementById('miniSocials');
-  let socHtml = '';
-  const s = place.social || {};
-  if(s.ig)  socHtml += socialIcon('ig',  s.ig,  'Instagram');
-  if(s.fb)  socHtml += socialIcon('fb',  s.fb,  'Facebook');
-  if(s.tg)  socHtml += socialIcon('tg',  s.tg,  'Telegram');
-  if(s.tt)  socHtml += socialIcon('tt',  s.tt,  'TikTok');
-  if(s.web) socHtml += socialIcon('web', s.web, 'Сайт');
-  socEl.innerHTML = socHtml;
+  // Fav button
+  const favBtn = document.getElementById('miniFavBtn');
+  const isFav = userFavorites.has(venue.id);
+  favBtn.textContent = isFav ? '♥' : '♡';
+  favBtn.classList.toggle('fav-active', isFav);
 
   card.classList.add('open');
-
-  // обновить кнопку избранного
-  const favBtn = document.getElementById('favBtn');
-  if (favBtn) {
-    const isFav = userFavorites.has(p.id);
-    favBtn.textContent = isFav ? '♥' : '♡';
-    favBtn.style.color = isFav ? '#e74c3c' : '';
-  }
-
-  // Keep card in bounds
   requestAnimationFrame(() => keepInBounds(card, pt));
-
-  // Update card position on map move
   map.off('move', onMapMove);
   map.on('move', onMapMove);
 }
 
 function onMapMove() {
-  if(!currentPlace) return;
+  if (!currentVenue) return;
   const card = document.getElementById('miniCard');
-  if(!card.classList.contains('open')) return;
-  const pt = map.latLngToContainerPoint([currentPlace.lat, currentPlace.lng]);
-  card.style.left = pt.x + 'px';
-  card.style.top  = pt.y + 'px';
+  if (!card.classList.contains('open')) return;
+  const pt = map.latLngToContainerPoint([currentVenue.lat, currentVenue.lng]);
+  card.style.left = pt.x+'px';
+  card.style.top  = pt.y+'px';
   keepInBounds(card, pt);
 }
 
 function keepInBounds(card, pt) {
-  const mapEl = document.getElementById('map');
-  const mw = mapEl.offsetWidth;
+  const mw = document.getElementById('map').offsetWidth;
   const cw = card.offsetWidth;
-  // Horizontal clamp
   let x = pt.x - cw/2;
-  x = Math.max(8, Math.min(x, mw - cw - 8));
-  card.style.left = (x + cw/2) + 'px'; // keep transform-origin correct
-  card.style.transform = `translate(${x - pt.x + cw/2}px, calc(-100% - 52px))`;
+  x = Math.max(8, Math.min(x, mw-cw-8));
+  card.style.transform = `translate(${x-pt.x+cw/2}px, calc(-100% - 52px))`;
 }
 
 function closeMini() {
@@ -1144,252 +1458,495 @@ function closeMini() {
   map && map.off('move', onMapMove);
 }
 
-// ─── FILTER ──────────────────────────────────────────────────────────────
-function filterPlaces(cat, btn) {
+// ═══════════════════════════════════════════════════════════
+//  FILTER
+// ═══════════════════════════════════════════════════════════
+function filterVenues(cat, btn) {
   document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
   btn.classList.add('active');
   closeMini();
+  if (!clusterGroup) return;
   clusterGroup.clearLayers();
   markers.forEach(m => {
-    if (cat === 'all' || m.placeData.category === cat) {
-      clusterGroup.addLayer(m);
-    }
+    if (cat === 'all' || m.venueData.category === cat) clusterGroup.addLayer(m);
   });
 }
 
-// ─── PROFILE ────────────────────────────────────────────────────────────
-function openProfile() {
-  if(!currentPlace) return;
-  const p = currentPlace;
-  document.getElementById('profileEmoji').textContent = p.emoji;
-  document.getElementById('profileName').textContent  = p.name;
-  document.getElementById('profileCat').textContent   = catLabel[p.category] || '';
-  document.getElementById('profileScore').textContent = p.rating;
-  document.getElementById('profileCount').textContent = `(${p.reviewCount} отзывов)`;
+// ═══════════════════════════════════════════════════════════
+//  VENUE PROFILE
+// ═══════════════════════════════════════════════════════════
+function openVenueProfile(venue) {
+  if (venue) currentVenue = venue;
+  if (!currentVenue) return;
+  const v = currentVenue;
+  const cat = CAT[v.category] || CAT.restaurant;
+  const stats = v._stats || {};
 
-  let stHtml='';
-  for(let i=1;i<=5;i++) stHtml += `<span class="star"${i>Math.round(p.rating)?' style="color:var(--border)"':''}>★</span>`;
-  document.getElementById('profileStars').innerHTML = stHtml;
+  // Photos
+  const photosEl = document.getElementById('venuePhotos');
+  const placeholder = document.getElementById('venuePhotoPlaceholder');
+  if (v.photos && v.photos.length > 0) {
+    photosEl.innerHTML = `<img src="${v.photos[0]}" onerror="this.parentNode.innerHTML='<div class=venue-photo-placeholder style=height:200px>${cat.emoji}</div>'"/>`;
+  } else {
+    photosEl.innerHTML = `<div class="venue-photo-placeholder" style="height:200px">${cat.emoji}</div>`;
+  }
 
-  // Profile social buttons
-  const ps = document.getElementById('profileSocials');
-  const s = p.social||{};
-  let psh='';
-  if(s.ig)  psh+=`<a href="${s.ig}"  target="_blank" class="profile-social-btn">${SVG.ig}  Instagram</a>`;
-  if(s.fb)  psh+=`<a href="${s.fb}"  target="_blank" class="profile-social-btn">${SVG.fb}  Facebook</a>`;
-  if(s.tg)  psh+=`<a href="${s.tg}"  target="_blank" class="profile-social-btn">${SVG.tg}  Telegram</a>`;
-  if(s.tt)  psh+=`<a href="${s.tt}"  target="_blank" class="profile-social-btn">${SVG.tt}  TikTok</a>`;
-  if(s.web) psh+=`<a href="${s.web}" target="_blank" class="profile-social-btn">${SVG.web} Сайт</a>`;
-  ps.innerHTML = psh;
+  document.getElementById('venueName').textContent = v.name_ru || v.name_en || v.name;
+  document.getElementById('venueCat').textContent = catLabel(v.category);
+  document.getElementById('venuePartnerBadge').style.display = v.is_partner ? 'block' : 'none';
 
-  // Info
-  document.getElementById('ptab-info').innerHTML = `
-    <div class="info-row"><span class="info-icon">📍</span><div><div class="info-label">Адрес</div><div class="info-val">${p.address}</div></div></div>
-    <div class="info-row"><span class="info-icon">🕐</span><div><div class="info-label">Часы работы</div><div class="info-val">${p.hours}</div></div></div>
-    <div class="info-row"><span class="info-icon">📞</span><div><div class="info-label">Телефон</div><div class="info-val">${p.phone}</div></div></div>
-    <div class="info-row"><span class="info-icon">💰</span><div><div class="info-label">Ценовой сегмент</div><div class="info-val">${p.price}</div></div></div>
-    <div class="info-row"><span class="info-icon">🏷️</span><div><div class="info-label">Теги</div><div class="info-val">${p.tags.join(', ')}</div></div></div>`;
+  const rating = stats.avg_rating || v.google_rating;
+  document.getElementById('venueRatingVal').textContent = rating ? parseFloat(rating).toFixed(1) : '—';
+  document.getElementById('venueReviewCount').textContent = stats.review_count || 0;
+  document.getElementById('venueCheckinCount').textContent = stats.total_checkins || 0;
 
-  // Events
-  const evEl = document.getElementById('ptab-events');
-  evEl.innerHTML = p.events&&p.events.length
-    ? p.events.map(e=>`<div class="event-card">
-        <div class="event-date"><div class="event-day">${e.day}</div><div>${e.month}</div></div>
-        <div><div class="event-name">${e.name}</div><div class="event-time">${e.time}</div></div>
-        <div class="event-price">${e.price}</div>
-      </div>`).join('')
-    : '<div style="color:var(--text3);font-size:14px;padding:20px 0;text-align:center">Мероприятий пока нет</div>';
+  // Fav
+  const favBtn = document.getElementById('venueFavBtn');
+  const isFav = userFavorites.has(v.id);
+  favBtn.textContent = isFav ? '♥' : '♡';
+  favBtn.classList.toggle('active', isFav);
 
-  // Menu
-  const menuEl = document.getElementById('ptab-menu');
-  menuEl.innerHTML = p.menu
-    ? Object.entries(p.menu).map(([cat,items])=>`
-        <div class="menu-category">
-          <div class="menu-cat-title">${cat}</div>
-          ${items.map(it=>`<div class="menu-item">
-            <div><div class="menu-item-name">${it.name}</div><div class="menu-item-desc">${it.desc}</div></div>
-            <div class="menu-item-price">${it.price}</div>
-          </div>`).join('')}
-        </div>`).join('')
-    : '';
+  // Book button — только для партнёров
+  document.getElementById('bookBtn').style.display = v.is_partner ? 'block' : 'none';
 
-  // Reviews из Supabase
-  renderReviews(p.id);
-
-  // Rating из Supabase
-  getPlaceRating(p.id).then(r => {
-    if (r) {
-      document.getElementById('profileScore').textContent = r.avg;
-      document.getElementById('profileCount').textContent = `(${r.count})`;
-    }
-  });
-
-  // Checkin count
-  loadCheckinCount(p.id);
-
-  closeMini();
-  switchTab('profile', document.querySelectorAll('.tab-btn')[1]);
-  switchProfileTab('info', document.querySelectorAll('.profile-tab')[0]);
+  switchProfileTab('info', document.querySelector('.profile-tab'));
+  switchTab('venue', null);
 }
 
 function switchProfileTab(tab, btn) {
-  ['info','events','menu','reviews'].forEach(t=>{
-    document.getElementById('ptab-'+t).style.display = t===tab?'block':'none';
-  });
-  document.querySelectorAll('.profile-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+  document.querySelectorAll('.profile-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderProfileContent(tab);
 }
 
-// ─── SUPABASE ────────────────────────────────────────────────────────────
-const SUPA_URL = 'https://bejynnpeyfbombgrrwrz.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJlanlubnBleWZib21iZ3Jyd3J6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTIxNzgsImV4cCI6MjA5MDk4ODE3OH0.TssRq1PGqvpGb8Fb11roHSQG_o0vgESZ8sZObupzaX8';
-const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+function renderProfileContent(tab) {
+  const v = currentVenue;
+  if (!v) return;
+  const el = document.getElementById('profileContent');
 
-let currentUser = null;
-let userFavorites = new Set();
+  if (tab === 'info') {
+    const hours = v.hours ? Object.entries(v.hours).map(([d,h]) => `${d}: ${h}`).join('<br>') : '—';
+    let socials = '';
+    const ig = v.instagram || v.social?.ig;
+    const fb = v.facebook  || v.social?.fb;
+    const tg = v.telegram_link || v.telegram || v.social?.tg;
+    const tt = v.tiktok    || v.social?.tt;
+    const wb = v.website   || v.social?.web;
+    if (ig) socials += `<a href="${ig}" target="_blank" class="social-link">📸 Instagram</a>`;
+    if (fb) socials += `<a href="${fb}" target="_blank" class="social-link">📘 Facebook</a>`;
+    if (tg) socials += `<a href="${tg}" target="_blank" class="social-link">✈️ Telegram</a>`;
+    if (tt) socials += `<a href="${tt}" target="_blank" class="social-link">🎵 TikTok</a>`;
+    if (wb) socials += `<a href="${wb}" target="_blank" class="social-link">🌐 Сайт</a>`;
+    // Fallback: пробуем поля social (старый формат)
+    const s = v.social || {};
+    if (!v.instagram && s.ig)  socials += `<a href="${s.ig}" target="_blank" class="social-link">📸 Instagram</a>`;
+    if (!v.facebook && s.fb)   socials += `<a href="${s.fb}" target="_blank" class="social-link">📘 Facebook</a>`;
+    if (!v.tiktok && s.tt)     socials += `<a href="${s.tt}" target="_blank" class="social-link">🎵 TikTok</a>`;
+    if (!v.website && s.web)   socials += `<a href="${s.web}" target="_blank" class="social-link">🌐 Сайт</a>`;
 
-async function initUser() {
-  const tg = window.Telegram?.WebApp;
-  const tgUser = tg?.initDataUnsafe?.user;
-
-  // Генерируем локальный ID сессии
-  let sessionId;
-  try { sessionId = localStorage.getItem('batumi_uid'); } catch(e) {}
-  if (!sessionId) {
-    sessionId = 'u_' + Date.now() + '_' + Math.floor(Math.random()*99999);
-    try { localStorage.setItem('batumi_uid', sessionId); } catch(e) {}
-  }
-
-  const telegram_id = tgUser ? String(tgUser.id) : sessionId;
-  const first_name = tgUser?.first_name || 'Гость';
-  const username = tgUser?.username || null;
-
-  // Устанавливаем currentUser сразу — чтобы кнопки работали
-  currentUser = { id: sessionId, telegram_id, first_name };
-
-  // Сохраняем в Supabase в фоне
-  try {
-    const { data } = await sb.from('users').upsert({
-      telegram_id,
-      username,
-      first_name,
-      last_name: tgUser?.last_name || null,
-      photo_url: tgUser?.photo_url || null
-    }, { onConflict: 'telegram_id' }).select().single();
-    if (data) {
-      currentUser = data;
-      await loadFavorites();
-    }
-  } catch(e) {
-    console.error('Supabase error:', e);
+    el.innerHTML = `
+      <div class="info-row"><div class="info-icon">📍</div><div><div class="info-label">Адрес</div><div class="info-val">${v.address || '—'}</div></div></div>
+      <div class="info-row"><div class="info-icon">📞</div><div><div class="info-label">Телефон</div><div class="info-val">${v.phone || '—'}</div></div></div>
+      <div class="info-row"><div class="info-icon">🕐</div><div><div class="info-label">Часы</div><div class="info-val">${hours}</div></div></div>
+      ${v.description_ru || v.description_en ? `<div class="info-row"><div class="info-icon">ℹ️</div><div><div class="info-label">О заведении</div><div class="info-val">${v.description_ru || v.description_en}</div></div></div>` : ''}
+      ${socials ? `<div class="social-links">${socials}</div>` : ''}
+    `;
+  } else if (tab === 'reviews') {
+    el.innerHTML = `<div class="reviews-header"><span class="reviews-title">${t('reviews')}</span><button class="write-review-btn" onclick="openReviewModal()">${t('write_review')}</button></div><div id="reviewsList"><div class="empty-state">${t('loading')}</div></div>`;
+    loadReviews(v.id);
+  } else if (tab === 'events') {
+    el.innerHTML = `<div id="venuePostsList"><div class="empty-state">${t('loading')}</div></div>`;
+    loadVenuePosts(v.id);
   }
 }
 
-async function loadFavorites() {
-  if (!currentUser) return;
-  const { data } = await sb.from('favorites').select('place_id').eq('user_id', currentUser.id);
-  userFavorites = new Set((data || []).map(f => f.place_id));
-}
-
-async function toggleFavorite() {
-  if (!currentUser) { currentUser = { id: 'guest', telegram_id: 'guest', first_name: 'Гость' }; }
-  if (!currentPlace) return;
-  const pid = currentPlace.id;
-  const btn = document.getElementById('favBtn');
-  if (userFavorites.has(pid)) {
-    await sb.from('favorites').delete().eq('user_id', currentUser.id).eq('place_id', pid);
-    userFavorites.delete(pid);
-    btn.textContent = '♡';
-  } else {
-    await sb.from('favorites').insert({ user_id: currentUser.id, place_id: pid });
-    userFavorites.add(pid);
-    btn.textContent = '♥';
-    btn.style.color = '#e74c3c';
-  }
-}
-
-async function doCheckin() {
-  if (!currentUser) { currentUser = { id: 'guest', telegram_id: 'guest', first_name: 'Гость' }; }
-  if (!currentPlace) return;
-  await sb.from('checkins').insert({ user_id: currentUser.id, place_id: currentPlace.id });
-  const btn = document.getElementById('checkinBtn');
-  btn.textContent = '✅';
-  setTimeout(() => { btn.textContent = '📍'; }, 2000);
-  // обновить счётчик чекинов
-  loadCheckinCount(currentPlace.id);
-}
-
-async function loadCheckinCount(placeId) {
-  const { count } = await sb.from('checkins').select('*', { count: 'exact', head: true }).eq('place_id', placeId);
-  const el = document.getElementById('checkinCount');
-  if (el) el.textContent = count || 0;
-}
-
-async function loadPlaceReviews(placeId) {
+async function loadReviews(venueId) {
   const { data } = await sb.from('reviews')
-    .select('*, users(first_name, username)')
-    .eq('place_id', placeId)
+    .select('*, users(first_name, username, photo_url)')
+    .eq('venue_id', venueId)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  const el = document.getElementById('reviewsList');
+  if (!el) return;
+  if (!data || !data.length) {
+    el.innerHTML = `<div class="review-empty">${t('write_review')} — будьте первым!</div>`;
+    return;
+  }
+  el.innerHTML = data.map(r => `
+    <div class="review-item">
+      <div class="review-top">
+        <span class="review-author">${r.users?.first_name || 'Гость'}</span>
+        <span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span>
+      </div>
+      ${r.text ? `<div class="review-text">${r.text}</div>` : ''}
+      <div class="review-date">${new Date(r.created_at).toLocaleDateString(currentLang==='ka'?'ka-GE':currentLang==='en'?'en-US':'ru-RU')}</div>
+    </div>
+  `).join('');
+}
+
+async function loadVenuePosts(venueId) {
+  const { data } = await sb.from('posts')
+    .select('*')
+    .eq('venue_id', venueId)
+    .eq('published', true)
     .order('created_at', { ascending: false });
-  return data || [];
+
+  const el = document.getElementById('venuePostsList');
+  if (!el) return;
+  if (!data || !data.length) {
+    el.innerHTML = `<div class="review-empty">Событий нет</div>`;
+    return;
+  }
+  el.innerHTML = data.map(p => renderPostCard(p, null)).join('');
 }
 
-async function getPlaceRating(placeId) {
-  const { data } = await sb.from('reviews').select('rating').eq('place_id', placeId);
-  if (!data || data.length === 0) return null;
-  const avg = data.reduce((s, r) => s + r.rating, 0) / data.length;
-  return { avg: avg.toFixed(1), count: data.length };
+function renderPostCard(p, venueName) {
+  const typeLabel = { event: t('type_event'), promo: t('type_promo'), news: t('type_news') };
+  const typeClass = { event:'badge-event', promo:'badge-promo', news:'badge-news' };
+  const title = p['title_'+currentLang] || p.title_ru || p.title_en || '';
+  const img = p.media_urls?.[0] ? `<img src="${p.media_urls[0]}" onerror="this.style.display='none'"/>` : '';
+  const dateStr = p.event_date ? new Date(p.event_date).toLocaleDateString() : '';
+  return `
+    <div class="post-card">
+      <div class="post-card-img">
+        ${img}
+        <span class="post-type-badge ${typeClass[p.type]}">${typeLabel[p.type]}</span>
+      </div>
+      <div class="post-card-body">
+        ${venueName ? `<div class="post-venue-name">${venueName}</div>` : ''}
+        <div class="post-title">${title}</div>
+        <div class="post-meta">
+          ${dateStr ? `<span>📅 ${dateStr}</span>` : ''}
+          ${p.price ? `<span class="post-price">${p.price}</span>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
 }
 
-// ─── REVIEW ──────────────────────────────────────────────────────────────
-function openReviewModal() {
-  document.getElementById('reviewModal').classList.add('open');
-  selectedStars=0;
-  document.querySelectorAll('.star-pick').forEach(s=>s.classList.remove('selected'));
-  document.getElementById('reviewText').value='';
+function backToMap() {
+  switchTab('map', document.getElementById('tab-btn-map'));
 }
-function closeReviewModal() { document.getElementById('reviewModal').classList.remove('open'); }
-function setStars(n) {
-  selectedStars=n;
-  document.querySelectorAll('.star-pick').forEach((s,i)=>s.classList.toggle('selected',i<n));
+
+// ═══════════════════════════════════════════════════════════
+//  CHECKIN (с геолокацией)
+// ═══════════════════════════════════════════════════════════
+function openCheckinModal() {
+  if (!currentVenue) return;
+  checkinVenueData = null;
+  document.getElementById('checkinModalTitle').textContent = currentVenue.name;
+  document.getElementById('checkinStatus').textContent = t('checkin_locating');
+  document.getElementById('checkinConfirmBtn').style.display = 'none';
+  openModal('checkinModal');
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      const dist = getDistanceM(userLat, userLng, currentVenue.lat, currentVenue.lng);
+      if (dist <= CHECKIN_RADIUS_M) {
+        document.getElementById('checkinStatus').textContent = `✅ Вы в ${Math.round(dist)}м от заведения`;
+        document.getElementById('checkinConfirmBtn').style.display = 'block';
+        checkinVenueData = { userLat, userLng };
+      } else {
+        document.getElementById('checkinStatus').textContent = `📍 Вы в ${Math.round(dist)}м от заведения.\nЧекин доступен в радиусе ${CHECKIN_RADIUS_M}м.`;
+      }
+    },
+    err => {
+      document.getElementById('checkinStatus').textContent = '⚠️ Не удалось получить геолокацию. Разрешите доступ к местоположению.';
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
 }
-async function submitReview() {
-  const text=document.getElementById('reviewText').value.trim();
-  if(!text||!selectedStars){alert('Пожалуйста, поставьте оценку и напишите отзыв');return;}
-  if (!currentUser) { currentUser = { id: 'guest', telegram_id: 'guest', first_name: 'Гость' }; }
-  if (!currentPlace) return;
-  await sb.from('reviews').insert({
-    user_id: currentUser.id,
-    place_id: currentPlace.id,
-    rating: selectedStars,
-    text: text
-  });
-  closeReviewModal();
-  // перезагрузить отзывы
-  if (document.getElementById('ptab-reviews').style.display !== 'none') {
-    renderReviews(currentPlace.id);
+
+async function confirmCheckin() {
+  if (!currentUser || !currentVenue || !checkinVenueData) return;
+  if (currentUser.id.startsWith('u_')) { showToast('Войдите через Telegram', 'error'); return; }
+
+  const btn = document.getElementById('checkinConfirmBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳';
+
+  try {
+    const { error } = await sb.from('checkins').insert({
+      user_id:  currentUser.id,
+      venue_id: currentVenue.id,
+      user_lat: checkinVenueData.userLat,
+      user_lng: checkinVenueData.userLng
+    });
+    if (error) throw error;
+    closeModal('checkinModal');
+    showToast('📍 Чекин засчитан!', 'success');
+    // Обновить счётчик
+    const el = document.getElementById('venueCheckinCount');
+    if (el) el.textContent = parseInt(el.textContent||0)+1;
+    document.getElementById('miniCheckinCount').textContent = parseInt(document.getElementById('miniCheckinCount').textContent||0)+1;
+    await loadUserStats();
+  } catch(e) {
+    showToast('Чекин уже засчитан', 'error');
+    btn.disabled = false;
+    btn.textContent = t('checkin_confirm');
   }
 }
 
-async function renderReviews(placeId) {
-  const reviews = await loadPlaceReviews(placeId);
-  const el = document.getElementById('profileReviews');
-  if (!reviews.length) { el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:10px 0">Отзывов пока нет. Будьте первым!</div>'; return; }
-  el.innerHTML = reviews.map(r => `
-    <div class="review-item">
-      <div class="review-author">${r.users?.first_name || r.users?.username || 'Пользователь'} <span style="color:var(--accent2);font-size:11px">${'★'.repeat(r.rating)}</span></div>
-      <div class="review-text">${r.text}</div>
-    </div>`).join('');
+function getDistanceM(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLng = (lng2-lng1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-// ─── TABS ────────────────────────────────────────────────────────────────
-function switchTab(tab, btn) {
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');
-  btn.classList.add('active');
-  setTimeout(()=>map&&map.invalidateSize(),50);
-  setTimeout(()=>map&&map.invalidateSize(),300);
+// ═══════════════════════════════════════════════════════════
+//  FAVORITES
+// ═══════════════════════════════════════════════════════════
+async function toggleFavorite() {
+  if (!currentVenue) return;
+  if (currentUser?.id?.startsWith('u_')) { showToast('Войдите через Telegram', 'error'); return; }
+
+  const vid = currentVenue.id;
+  const isFav = userFavorites.has(vid);
+
+  if (isFav) {
+    await sb.from('favorites').delete().eq('user_id', currentUser.id).eq('venue_id', vid);
+    userFavorites.delete(vid);
+  } else {
+    await sb.from('favorites').insert({ user_id: currentUser.id, venue_id: vid });
+    userFavorites.add(vid);
+  }
+
+  const newFav = !isFav;
+  // Mini card
+  const mBtn = document.getElementById('miniFavBtn');
+  if (mBtn) { mBtn.textContent = newFav ? '♥' : '♡'; mBtn.classList.toggle('fav-active', newFav); }
+  // Profile
+  const vBtn = document.getElementById('venueFavBtn');
+  if (vBtn) { vBtn.textContent = newFav ? '♥' : '♡'; vBtn.classList.toggle('active', newFav); }
+
+  showToast(newFav ? '♥ Добавлено в избранное' : '♡ Удалено из избранного');
+  await loadUserStats();
 }
+
+// ═══════════════════════════════════════════════════════════
+//  REVIEWS
+// ═══════════════════════════════════════════════════════════
+function openReviewModal() {
+  selectedStars = 0;
+  document.querySelectorAll('.star-pick').forEach(s => s.classList.remove('selected'));
+  document.getElementById('reviewText').value = '';
+  openModal('reviewModal');
+}
+
+function setStars(n) {
+  selectedStars = n;
+  document.querySelectorAll('.star-pick').forEach((s,i) => s.classList.toggle('selected', i<n));
+}
+
+async function submitReview() {
+  if (!selectedStars) { showToast('Поставьте оценку', 'error'); return; }
+  if (!currentVenue) return;
+  if (currentUser?.id?.startsWith('u_')) { showToast('Войдите через Telegram', 'error'); return; }
+
+  const text = document.getElementById('reviewText').value.trim();
+  const { error } = await sb.from('reviews').upsert({
+    user_id:  currentUser.id,
+    venue_id: currentVenue.id,
+    rating:   selectedStars,
+    text:     text || null
+  }, { onConflict: 'user_id,venue_id' });
+
+  if (error) { showToast('Ошибка', 'error'); return; }
+  closeModal('reviewModal');
+  showToast('✅ Отзыв опубликован', 'success');
+  renderProfileContent('reviews');
+  await loadUserStats();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  BOOKING
+// ═══════════════════════════════════════════════════════════
+function openBookingModal() {
+  guestsCount = 2;
+  document.getElementById('guestsVal').textContent = 2;
+  // Предзаполнить имя
+  if (currentUser?.first_name) document.getElementById('bookName').value = currentUser.first_name;
+  // Дефолтная дата — завтра 19:00
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1); tomorrow.setHours(19,0,0,0);
+  document.getElementById('bookDate').value = tomorrow.toISOString().slice(0,16);
+  openModal('bookingModal');
+}
+
+function changeGuests(delta) {
+  guestsCount = Math.max(1, Math.min(20, guestsCount+delta));
+  document.getElementById('guestsVal').textContent = guestsCount;
+}
+
+async function submitBooking() {
+  const name  = document.getElementById('bookName').value.trim();
+  const phone = document.getElementById('bookPhone').value.trim();
+  const date  = document.getElementById('bookDate').value;
+  if (!name || !date) { showToast('Заполните имя и дату', 'error'); return; }
+  if (!currentVenue) return;
+  if (currentUser?.id?.startsWith('u_')) { showToast('Войдите через Telegram', 'error'); return; }
+
+  const { error } = await sb.from('bookings').insert({
+    user_id:  currentUser.id,
+    venue_id: currentVenue.id,
+    book_date: new Date(date).toISOString(),
+    guests:   guestsCount,
+    name, phone,
+    comment:  document.getElementById('bookComment').value.trim() || null,
+    status:   'pending'
+  });
+
+  if (error) { showToast('Ошибка бронирования', 'error'); return; }
+  closeModal('bookingModal');
+  showToast('✅ Бронь отправлена!', 'success');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  AFISHA
+// ═══════════════════════════════════════════════════════════
+async function loadAfisha() {
+  const { data } = await sb.from('posts')
+    .select('*, venues(name, category)')
+    .eq('published', true)
+    .order('event_date', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  allPosts = data || [];
+  renderAfisha();
+}
+
+function filterAfisha(type, btn) {
+  document.querySelectorAll('.afisha-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  afishaFilter = type;
+  renderAfisha();
+}
+
+function renderAfisha() {
+  const el = document.getElementById('afishaList');
+  const filtered = afishaFilter === 'all' ? allPosts : allPosts.filter(p => p.type === afishaFilter);
+  if (!filtered.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><div>Нет публикаций</div></div>`;
+    return;
+  }
+  el.innerHTML = filtered.map(p => renderPostCard(p, p.venues?.name)).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════════════════════════
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if (btn) btn.classList.add('active');
+  else {
+    const b = document.getElementById('tab-btn-'+tab);
+    if (b) b.classList.add('active');
+  }
+
+  setTimeout(() => map && map.invalidateSize(), 50);
+  setTimeout(() => map && map.invalidateSize(), 300);
+
+  if (tab === 'afisha') loadAfisha();
+  if (tab === 'profile') { loadUserStats(); loadFavList(); }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MODALS
+// ═══════════════════════════════════════════════════════════
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' '+type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ─── ADMIN: РЕДАКТОР КООРДИНАТ ───────────────────────────────────────────────
+let pinModeVenue = null;
+
+function toggleAdminPanel() {
+  // Показываем список всех заведений для выбора
+  const list = allVenues.map((v,i) => 
+    `<div onclick="startPinMode('${v.id}')" style="padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px;display:flex;justify-content:space-between;align-items:center">
+      <span>${v.name}</span>
+      <span style="color:var(--text3);font-size:10px">${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}</span>
+    </div>`
+  ).join('');
+  
+  const panel = document.createElement('div');
+  panel.id = 'adminPanel';
+  panel.style.cssText = 'position:fixed;inset:0;z-index:3000;background:var(--bg2);overflow-y:auto;';
+  panel.innerHTML = `
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:1">
+      <b style="font-size:15px">📐 Редактор координат</b>
+      <button onclick="document.getElementById('adminPanel').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text)">✕</button>
+    </div>
+    <div style="padding:10px 16px;font-size:11px;color:var(--text3)">Нажми на заведение → затем тапни точное место на карте</div>
+    ${list}
+  `;
+  document.body.appendChild(panel);
+}
+
+function startPinMode(venueId) {
+  const panel = document.getElementById('adminPanel');
+  if (panel) panel.remove();
+  
+  pinModeVenue = allVenues.find(v => v.id === venueId);
+  if (!pinModeVenue) return;
+  
+  document.getElementById('pinVenueName').textContent = pinModeVenue.name;
+  document.getElementById('pinBanner').classList.add('active');
+  document.getElementById('map').style.cursor = 'crosshair';
+  
+  // Центрируем карту на текущей позиции заведения
+  map.setView([pinModeVenue.lat, pinModeVenue.lng], 17);
+  
+  map.once('click', function(e) {
+    if (!pinModeVenue) return;
+    const { lat, lng } = e.latlng;
+    pinModeVenue.lat = lat;
+    pinModeVenue.lng = lng;
+    
+    // Перерисовываем маркер
+    clusterGroup.clearLayers();
+    markers = [];
+    allVenues.forEach(v => addMarker(v));
+    
+    exitPinMode();
+    showToast(`✅ ${pinModeVenue.name}: ${lat.toFixed(5)}, ${lng.toFixed(5)}`, 'success');
+    
+    // Сохраняем в Supabase если есть UUID
+    if (currentUser && !currentUser.id.startsWith('u_') && pinModeVenue.id.startsWith('v')) {
+      console.log('Coords updated locally. To save permanently, add to Supabase.');
+    }
+    
+    // Копируем в буфер для удобства
+    navigator.clipboard?.writeText(`lat:${lat.toFixed(5)},lng:${lng.toFixed(5)}`).catch(()=>{});
+  });
+}
+
+function exitPinMode() {
+  pinModeVenue = null;
+  document.getElementById('pinBanner').classList.remove('active');
+  document.getElementById('map').style.cursor = '';
+  map.off('click');
+  map.on('click', closeMini);
+}
+
 </script>
 </body>
 </html>
